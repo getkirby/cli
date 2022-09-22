@@ -99,6 +99,42 @@ kirby hello Joe
 
 If no name is provided, an error will be shown. 
 
+
+### Prompts
+
+Instead of taking arguments from the command, you can also ask for them in a prompt:
+
+```php
+<?php
+
+return [
+    'description' => 'Hello world',
+    'command' => static function ($cli): void {
+        $name = $cli->prompt('Please enter a name:');
+        $cli->success('Hello ' . $name . '!');
+    }
+];
+```
+
+As a third alternative you can either take the argument or ask for it if it is not provided: 
+
+```php
+<?php
+
+return [
+    'description' => 'Hello world',
+    'args' => [
+        'name' => [
+            'description' => 'The name for the greeting',
+        ]
+    ],
+    'command' => static function ($cli): void {
+        $name = $cli->argOrPrompt('name', 'Please enter a name:');
+        $cli->success('Hello ' . $name . '!');
+    }
+];
+```
+
 ## Global commands
 
 You might have some commands that you need for all your local Kirby installations. This is where global commands come in handy. You can create a new global command with the `--global` flag:

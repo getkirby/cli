@@ -42,6 +42,8 @@ kirby
 
 … without any additional arguments. This will not just show you the built-in commands, but also the globally and locally installed commands on your machine.
 
+![kirby-cli](https://user-images.githubusercontent.com/24532/191786449-234280d4-005c-4314-813d-32fd21324ed2.png)
+
 ## Writing commands
 
 You can create a new command via the CLI: 
@@ -67,6 +69,35 @@ return [
 ```
 
 You can define your command logic in the command callback. The `$cli` object comes with a set of handy tools to create output, parse command arguments, create prompts and more. 
+
+### Arguments
+
+Your commands can define a list of required and optional arguments that need to be provided by the user. 
+
+```php
+<?php
+
+return [
+    'description' => 'Hello world',
+    'args' => [
+        'name' => [
+            'description' => 'The name for the greeting',
+            'required'    => true
+        ]
+    ],
+    'command' => static function ($cli): void {
+        $cli->success('Hello ' . $cli->arg('name') . '!');
+    }
+];
+```
+
+The command can now be executed by providing the name …
+
+```
+kirby hello Joe
+```
+
+If no name is provided, an error will be shown. 
 
 ## Global commands
 

@@ -70,6 +70,41 @@ return [
 
 You can define your command logic in the command callback. The `$cli` object comes with a set of handy tools to create output, parse command arguments, create prompts and more. 
 
+### Output
+
+Sending messages to the terminal is super easy. 
+
+#### $cli->out()
+
+```php 
+$cli->out('This is some simple text');
+```
+
+#### $cli->success()
+
+```php 
+$cli->success('This is text in a nice green box');
+```
+
+#### $cli->error()
+
+```php 
+$cli->error('This is red text for errors');
+```
+
+#### $cli->bold()
+
+```php 
+$cli->bold('This is some bold text');
+```
+
+#### $cli->br()
+
+```php 
+// this will create a line break
+$cli->br();
+```
+
 ### Arguments
 
 Your commands can define a list of required and optional arguments that need to be provided by the user. 
@@ -131,6 +166,25 @@ return [
     'command' => static function ($cli): void {
         $name = $cli->argOrPrompt('name', 'Please enter a name:');
         $cli->success('Hello ' . $name . '!');
+    }
+];
+```
+
+## Combining commands
+
+You can reuse all existing commands in your custom commands to create entire chains of actions. 
+
+```php
+<?php
+
+return [
+    'description' => 'Downloads the starterkit and the plainkit',
+    'command' => static function ($cli): void {
+
+        $cli->command('install:kit', 'starterkit');
+        $cli->command('install:kit', 'plainkit');
+
+        $cli->success('Starterkit and plainkit have been installed');
     }
 ];
 ```

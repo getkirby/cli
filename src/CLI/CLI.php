@@ -352,7 +352,7 @@ class CLI
 	{
 		// convert the name to a path
 		$name    = str_replace(':', '/', $name);
-		$command = require_once $this->commandFile($name);
+		$command = require $this->commandFile($name);
 
 		// validate the command format
 		if (is_array($command) === false) {
@@ -483,10 +483,6 @@ class CLI
 		if ($exception !== null) {
 			throw $exception;
 		}
-
-		// add an empty line at the top to make the result
-		// more readable
-		$this->climate->br();
 
 		$command['command']($this);
 	}

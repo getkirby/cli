@@ -28,7 +28,7 @@ return [
 		}
 
 		$kit  ??= 'starterkit';
-		$folder = $cli->argOrPrompt('folder', 'Enter a folder name (press <Enter> to use "' . $kit . '")');
+		$folder = $cli->argOrPrompt('folder', 'Enter a folder name (press <Enter> to use "' . $kit . '")', false);
 		$title  = ucfirst($kit);
 
 		if (empty($folder) === true) {

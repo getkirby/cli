@@ -1,0 +1,12 @@
+# os
+.DS_Store
+
+# cs fixer
+.php-cs-fixer.cache
+
+# tests
+.phpunit.result.cache
+/tests/coverage
+
+# ignore all the vendor cruft
+/vendor

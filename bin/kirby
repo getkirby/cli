@@ -1,0 +1,21 @@
+#!/usr/bin/env php
+<?php
+
+$root = getcwd() . '/kirby';
+
+// maybe a public folder setup?
+if (is_dir($root) === false) {
+    $root = dirname(getcwd()) . '/kirby';
+}
+
+if (is_dir($root) === true) {
+    require_once $root . '/bootstrap.php';
+
+    if (function_exists('kirby') === false) {
+        require_once $root . '/vendor/autoload.php';
+    }
+}
+
+require_once $_composer_autoload_path ?? __DIR__ . '/../vendor/autoload.php';
+
+Kirby\CLI\CLI::command(...array_slice($argv, 1));

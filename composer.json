@@ -1,0 +1,41 @@
+{
+  "name": "getkirby/cli",
+  "description": "Kirby command line interface",
+  "license": "MIT",
+  "version": "1.0.0",
+  "keywords": [
+    "kirby",
+    "cms",
+    "cli",
+    "command"
+  ],
+  "homepage": "https://getkirby.com",
+  "support": {
+    "email": "support@getkirby.com",
+    "issues": "https://github.com/getkirby/cli/issues",
+    "forum": "https://forum.getkirby.com",
+    "source": "https://github.com/getkirby/cli"
+  },
+  "authors": [
+    {
+      "name": "Kirby Team",
+      "email": "support@getkirby.com",
+      "homepage": "https://getkirby.com"
+    }
+  ],
+  "require": {
+    "guzzlehttp/guzzle": "^7.0",
+    "league/climate": "^3.8"
+  },
+  "autoload": {
+    "psr-4": {
+      "Kirby\\": "src/"
+    }
+  },
+  "config": {
+    "optimize-autoloader": true
+  },
+  "bin": [
+    "bin/kirby"
+  ]
+}

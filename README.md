@@ -11,22 +11,23 @@ composer global require getkirby/cli
 ## Available commands
 
 ```
-kirby clear:cache
-kirby clear:media
-kirby clear:sessions
-kirby download
-kirby help
-kirby install
-kirby install:kit
-kirby install:repo
-kirby make:blueprint
-kirby make:collection
-kirby make:command
-kirby make:config
-kirby make:controller
-kirby make:model
-kirby make:snippet
-kirby make:template
-kirby unzip
-kirby version
+- kirby clear:cache
+- kirby clear:media
+- kirby clear:sessions
+- kirby download
+- kirby help
+- kirby install
+- kirby install:kit
+- kirby install:repo
+- kirby make:blueprint
+- kirby make:collection
+- kirby make:command
+- kirby make:config
+- kirby make:controller
+- kirby make:model
+- kirby make:snippet
+- kirby make:template
+- kirby remove:command
+- kirby unzip
+- kirby version
 ```

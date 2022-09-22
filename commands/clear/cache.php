@@ -1,23 +1,23 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 use Kirby\CLI\CLI;
 
 return [
-    'description' => 'Clears the cache',
-    'args' => [
-        'name' => [
-            'description' => 'The name of the cache',
-        ]
-    ],
-    'command' => static function (CLI $cli): void {
-        $kirby = $cli->kirby();
-        $name  = $cli->argOrPrompt('name', 'Which cache should be emptied? (press <Enter> to clear the pages cache)', false);
-        $name ??= 'pages';
+	'description' => 'Clears the cache',
+	'args' => [
+		'name' => [
+			'description' => 'The name of the cache',
+		]
+	],
+	'command' => static function (CLI $cli): void {
+		$kirby = $cli->kirby();
+		$name  = $cli->argOrPrompt('name', 'Which cache should be emptied? (press <Enter> to clear the pages cache)', false);
+		$name ??= 'pages';
 
-        $kirby->cache($name)->flush();
+		$kirby->cache($name)->flush();
 
-        $cli->success('The cache has been cleared');
-    }
+		$cli->success('The cache has been cleared');
+	}
 ];

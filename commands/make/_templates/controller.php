@@ -1,5 +1,5 @@
 <?php
 
 return function ($page) {
-    return [];
+	return [];
 };

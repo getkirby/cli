@@ -69,13 +69,8 @@ class CLI
 	{
 		$value = $this->arg($name);
 
-		while (empty($value) === true) {
-			$input = $this->input($prompt);
-			$value = $input->prompt();
-
-			if ($required === false) {
-				return $value;
-			}
+		if (empty($value) === true) {
+			return $this->prompt($prompt, $required);
 		}
 
 		return $value;
@@ -396,6 +391,24 @@ class CLI
 		}
 
 		return file_put_contents($file, $content) !== false;
+	}
+
+	/**
+	 * Shows a prompt and returns the
+	 * entered value.
+	 */
+	public function prompt(string $prompt, bool $required = true)
+	{
+		while (empty($value) === true) {
+			$input = $this->input($prompt);
+			$value = $input->prompt();
+
+			if ($required === false) {
+				return $value;
+			}
+		}
+
+		return $value;
 	}
 
 	/**

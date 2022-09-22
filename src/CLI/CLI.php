@@ -11,6 +11,15 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Throwable;
 
+/**
+ * Command Line Interface for Kirby
+ *
+ * @package   Kirby CLI
+ * @author    Bastian Allgeier <bastian@getkirby.com>
+ * @link      https://getkirby.com
+ * @copyright Bastian Allgeier
+ * @license   https://opensource.org/licenses/MIT
+ */
 class CLI
 {
 	protected CLImate $climate;

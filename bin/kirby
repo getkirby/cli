@@ -8,8 +8,10 @@ if (is_dir($root) === false) {
     $root = dirname(getcwd()) . '/kirby';
 }
 
-if (is_dir($root) === true) {
-    require_once $root . '/bootstrap.php';
+$bootstrap = $root . '/bootstrap.php';
+
+if (is_dir($root) === true && is_file($bootstrap)) {
+    require_once $bootstrap;
 
     if (function_exists('kirby') === false) {
         require_once $root . '/vendor/autoload.php';

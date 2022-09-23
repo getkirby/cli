@@ -165,6 +165,12 @@ class CLI
 	 */
 	public function commandsInDirectory(string $directory): array
 	{
+		$directory = realpath($directory);
+
+		if (!$directory || is_dir($directory) === false) {
+			return [];
+		}
+
 		$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
 		$commands = [];
 

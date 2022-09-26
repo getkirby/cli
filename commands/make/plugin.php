@@ -15,7 +15,7 @@ return [
 		$kirby = $cli->kirby();
 		$name  = $cli->argOrPrompt('name', 'Enter a name (`vendor/plugin`) for the snippet:');
 		$name  = lcfirst($name);
-		$file  = $kirby->root('plugins') . '/' . $name . '/index.php';
+		$file  = $kirby->root('plugins') . '/' . basename($name) . '/index.php';
 
 		$cli->make($file, __DIR__ . '/_templates/plugin.php', [
 			'name' => $name

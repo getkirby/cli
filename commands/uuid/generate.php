@@ -15,8 +15,8 @@ return [
 			return;
 		}
 
-		Uuids::populate();
+		Uuids::generate();
 
-		$cli->success('The UUIDs have been created');
+		$cli->success('UUIDs have been created');
 	}
 ];

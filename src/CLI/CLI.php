@@ -286,7 +286,11 @@ class CLI
 	{
 		foreach ($roots as $key => $value) {
 			if (str_starts_with($value, '.') === true) {
-				$roots[$key] = realpath(getcwd() . '/' . $value);
+				$root = realpath(getcwd() . '/' . $value);
+
+				if ($root !== false) {
+					$roots[$key] = $root;
+				}
 			} else {
 				$roots[$key] = $value;
 			}

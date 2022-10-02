@@ -25,10 +25,13 @@ composer global require getkirby/cli
 - kirby make:config
 - kirby make:controller
 - kirby make:model
+- kirby make:plugin
 - kirby make:snippet
 - kirby make:template
 - kirby remove:command
 - kirby unzip
+- kirby uuid:generate
+- kirby uuid:populate
 - kirby version
 ```
 
@@ -105,6 +108,8 @@ $cli->bold('This is some bold text');
 $cli->br();
 ```
 
+For more available colors and formats, check out the CLImate docs: https://climate.thephpleague.com/styling/colors/
+
 ### Arguments
 
 Your commands can define a list of required and optional arguments that need to be provided by the user. 
@@ -134,6 +139,9 @@ kirby hello Joe
 
 If no name is provided, an error will be shown. 
 
+### Argument docs
+
+Arguments can be required, can set a default value and more. Check out the CLImate docs for additional options: https://climate.thephpleague.com/arguments/
 
 ### Prompts
 
@@ -169,6 +177,10 @@ return [
     }
 ];
 ```
+
+## Checkboxes Radios and more 
+
+The CLI also supports more complex ways to get input from users. Check out the CLImate docs how to work with user input: https://climate.thephpleague.com/terminal-objects/input/ 
 
 ## Combining commands
 
@@ -208,5 +220,35 @@ kirby remove:command hello
 ```
 
 If you have a local and a global command, you can choose which one to delete. 
+
+## kirby.cli.json
+
+You can place a kirby.cli.json file in root folder of your project to setup the Kirby instance with custom directories. This is useful if you use a non-standard Kirby installation with a public webroot for example. 
+
+```json
+{
+    "roots": {
+        "index": "./public",
+    }
+}
+```
+
+### Where to place local commands
+
+The config can also set where local commands are stored. By default, they are stored in `/site/commands`
+
+```json
+{
+    "roots": {
+        "commands.local": "./commands",
+        "commands.global": "/var/kirby/commands",
+    }
+}
+```
+
+
+
+
+
 
 

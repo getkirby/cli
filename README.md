@@ -2,6 +2,9 @@
 
 The Kirby command line interface helps simplifying common tasks with your Kirby installations.
 
+![kirby-cli](https://user-images.githubusercontent.com/24532/193451850-73b1404d-82e2-42d4-b62b-3122fdc3f005.png)
+
+
 ## Installation
 
 ### Via Composer
@@ -96,8 +99,6 @@ You can always check back if your commands have been created properly by running
 ```
 kirby
 ```
-
-![kirby-cli](https://user-images.githubusercontent.com/24532/191786449-234280d4-005c-4314-813d-32fd21324ed2.png)
 
 ## Removing commands
 

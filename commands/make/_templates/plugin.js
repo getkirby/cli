@@ -1,0 +1,3 @@
+panel.plugin("{{ name }}", {
+	//…
+});

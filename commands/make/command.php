@@ -19,6 +19,8 @@ return [
 	],
 	'command' => static function (CLI $cli): void {
 		$name = $cli->argOrPrompt('name', 'Enter a name for the command:');
+		$name = str_replace(':', '/', $name);
+
 		$root = $cli->arg('global') === true ? 'commands.global' : 'commands.local';
 		$file = $cli->root($root) . '/' . $name . '.php';
 

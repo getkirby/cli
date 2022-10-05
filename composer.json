@@ -2,7 +2,7 @@
 	"name": "getkirby/cli",
 	"description": "Kirby command line interface",
 	"license": "MIT",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"keywords": [
 		"kirby",
 		"cms",
@@ -24,6 +24,7 @@
 		}
 	],
 	"require": {
+		"composer-runtime-api": "^2.2",
 		"ext-zip": "*",
 		"guzzlehttp/guzzle": "^7.5",
 		"league/climate": "^3.8",

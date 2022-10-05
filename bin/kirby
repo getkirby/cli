@@ -1,21 +1,21 @@
 #!/usr/bin/env php
 <?php
 
-$root = getcwd() . '/kirby';
+$index = getcwd() . '/index.php';
 
-// maybe a public folder setup?
-if (is_dir($root) === false) {
-    $root = dirname(getcwd()) . '/kirby';
-}
+// try to load Kirby’s index.php
+if (file_exists($index) === true) {
+	// switch off the renderer to
+	// avoid any output in the CLI
+	$_ENV['KIRBY_RENDER'] = false;
 
-$bootstrap = $root . '/bootstrap.php';
+	ob_start();
+	require $index;
+	ob_end_clean();
 
-if (is_dir($root) === true && is_file($bootstrap)) {
-    require_once $bootstrap;
-
-    if (function_exists('kirby') === false) {
-        require_once $root . '/vendor/autoload.php';
-    }
+	// rendering could be useful in commands
+	// again. That's why we switch it back on
+	$_ENV['KIRBY_RENDER'] = true;
 }
 
 require_once $_composer_autoload_path ?? __DIR__ . '/../vendor/autoload.php';

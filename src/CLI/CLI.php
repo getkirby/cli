@@ -254,7 +254,7 @@ class CLI
 	 */
 	protected function createCommandRoots(): void
 	{
-		$local = $this->kirby ? $this->kirby->root('commands') : getcwd() . '/commands';
+		$local = $this->kirby?->root('commands') ?? getcwd() . '/commands';
 
 		$this->roots['commands.core']   ??= dirname(__DIR__, 2) . '/commands';
 		$this->roots['commands.global'] ??= getenv('HOME') . '/.kirby/commands';

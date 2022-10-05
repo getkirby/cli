@@ -246,18 +246,6 @@ return [
 ];
 ```
 
-## kirby.cli.json
-
-You can place a kirby.cli.json file in root folder of your project to setup the Kirby instance with custom directories. This is useful if you use a non-standard Kirby installation with a public webroot for example.
-
-```json
-{
-    "roots": {
-        "index": "./public",
-    }
-}
-```
-
 ### Where to place local commands
 
 The config can also set where local commands are stored. By default, they are stored in `/site/commands`

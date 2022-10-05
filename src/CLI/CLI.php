@@ -40,13 +40,11 @@ class CLI
 	 */
 	public function __construct()
 	{
-		$this->options = $this->createOptions();
-		$this->roots   = $this->createRoots($this->options['roots'] ?? []);
+		$this->roots = [];
 
 		if (function_exists('kirby') === true) {
-			$this->kirby = new App([
-				'roots' => $this->roots
-			]);
+			$this->kirby = App::instance();
+			$this->roots = $this->kirby->roots()->toArray();
 		}
 
 		$this->createCommandRoots();
@@ -256,27 +254,11 @@ class CLI
 	 */
 	protected function createCommandRoots(): void
 	{
-		$base = $this->kirby ? $this->kirby->root('site') : getcwd();
+		$local = $this->kirby ? $this->kirby->root('commands') : getcwd() . '/commands';
 
-		$this->roots['commands.core']   ??= __DIR__ . '/../../commands';
+		$this->roots['commands.core']   ??= dirname(__DIR__, 2) . '/commands';
 		$this->roots['commands.global'] ??= getenv('HOME') . '/.kirby/commands';
-		$this->roots['commands.local']  ??= $base . '/commands';
-	}
-
-	/**
-	 * Loads CLI options from a custom json file.
-	 */
-	protected function createOptions(): array
-	{
-		$file = getcwd() . '/kirby.cli.json';
-
-		if (is_file($file) === false) {
-			return [];
-		}
-
-		$config = file_get_contents($file);
-
-		return json_decode($config, true);
+		$this->roots['commands.local']  ??= $local;
 	}
 
 	/**
@@ -428,6 +410,14 @@ class CLI
 	public function root(string $key): ?string
 	{
 		return $this->roots[$key] ?? $this->kirby?->root($key);
+	}
+
+	/**
+	 * Returns all roots
+	 */
+	public function roots(): array
+	{
+		return $this->roots;
 	}
 
 	/**

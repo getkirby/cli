@@ -13,7 +13,15 @@ The Kirby command line interface helps simplifying common tasks with your Kirby 
 composer global require getkirby/cli
 ```
 
-Make sure to add the following to your `~/.bash_profile` (Mac OS users) or into your `~/.bashrc` (Linux users).
+Make sure to add your composer bin directory to your `~/.bash_profile` (Mac OS users) or into your `~/.bashrc` (Linux users).
+
+Your global composer directory is normally either `~/.composer/vendor/bin` or `~/.config/composer/vendor/bin`. You can find the correct path by running …
+
+```
+composer -n config --global home
+```
+
+Afterwards, add the result to your bash profile  …
 
 ```
 export PATH=~/.composer/vendor/bin:$PATH
@@ -24,7 +32,7 @@ export PATH=~/.composer/vendor/bin:$PATH
 Check if the installation worked by running the following in your terminal.
 
 ```
-kirby 
+kirby
 ```
 
 This should print the Kirby CLI version and a list of available commands
@@ -58,7 +66,7 @@ This should print the Kirby CLI version and a list of available commands
 
 ## Writing commands
 
-You can create a new command via the CLI: 
+You can create a new command via the CLI:
 
 ```bash
 kirby make:command hello
@@ -66,7 +74,7 @@ kirby make:command hello
 
 This will create a new `site/commands` folder in your installation with a new `hello.php` file
 
-The CLI will already put the basic scaffolding into the file: 
+The CLI will already put the basic scaffolding into the file:
 
 ```php
 <?php
@@ -80,7 +88,7 @@ return [
 ];
 ```
 
-You can define your command logic in the command callback. The `$cli` object comes with a set of handy tools to create output, parse command arguments, create prompts and more. 
+You can define your command logic in the command callback. The `$cli` object comes with a set of handy tools to create output, parse command arguments, create prompts and more.
 
 ## Global commands
 
@@ -90,7 +98,7 @@ You might have some commands that you need for all your local Kirby installation
 kirby make:command hello --global
 ```
 
-The command file will then be place in `~/.kirby/commands/hello.php` and is automatically available everywhere. 
+The command file will then be place in `~/.kirby/commands/hello.php` and is automatically available everywhere.
 
 ## Check for installed commands
 
@@ -108,39 +116,39 @@ Once you no longer need a command, you can remove it with …
 kirby remove:command hello
 ```
 
-If you have a local and a global command, you can choose which one to delete. 
+If you have a local and a global command, you can choose which one to delete.
 
 ## Formatting Output
 
-Sending messages to the terminal is super easy. 
+Sending messages to the terminal is super easy.
 
 ### $cli->out()
 
-```php 
+```php
 $cli->out('This is some simple text');
 ```
 
 ### $cli->success()
 
-```php 
+```php
 $cli->success('This is text in a nice green box');
 ```
 
 ### $cli->error()
 
-```php 
+```php
 $cli->error('This is red text for errors');
 ```
 
 ### $cli->bold()
 
-```php 
+```php
 $cli->bold('This is some bold text');
 ```
 
 ### $cli->br()
 
-```php 
+```php
 // this will create a line break
 $cli->br();
 ```
@@ -149,7 +157,7 @@ For more available colors and formats, check out the CLImate docs: https://clima
 
 ## Arguments
 
-Your commands can define a list of required and optional arguments that need to be provided by the user. 
+Your commands can define a list of required and optional arguments that need to be provided by the user.
 
 ```php
 <?php
@@ -174,7 +182,7 @@ The command can now be executed by providing the name …
 kirby hello Joe
 ```
 
-If no name is provided, an error will be shown. 
+If no name is provided, an error will be shown.
 
 ### Argument docs
 
@@ -196,7 +204,7 @@ return [
 ];
 ```
 
-As a third alternative you can either take the argument or ask for it if it is not provided: 
+As a third alternative you can either take the argument or ask for it if it is not provided:
 
 ```php
 <?php
@@ -215,13 +223,13 @@ return [
 ];
 ```
 
-## Checkboxes Radios and more 
+## Checkboxes Radios and more
 
-The CLI also supports more complex ways to get input from users. Check out the CLImate docs how to work with user input: https://climate.thephpleague.com/terminal-objects/input/ 
+The CLI also supports more complex ways to get input from users. Check out the CLImate docs how to work with user input: https://climate.thephpleague.com/terminal-objects/input/
 
 ## Combining commands
 
-You can reuse all existing commands in your custom commands to create entire chains of actions. 
+You can reuse all existing commands in your custom commands to create entire chains of actions.
 
 ```php
 <?php
@@ -240,7 +248,7 @@ return [
 
 ## kirby.cli.json
 
-You can place a kirby.cli.json file in root folder of your project to setup the Kirby instance with custom directories. This is useful if you use a non-standard Kirby installation with a public webroot for example. 
+You can place a kirby.cli.json file in root folder of your project to setup the Kirby instance with custom directories. This is useful if you use a non-standard Kirby installation with a public webroot for example.
 
 ```json
 {
@@ -278,7 +286,7 @@ The config can also set where local commands are stored. By default, they are st
 
 ---
 
-© 2009-2022 Bastian Allgeier  
+© 2009-2022 Bastian Allgeier
 [getkirby.com](https://getkirby.com) · [License agreement](./LICENSE.md)
 
 

@@ -140,9 +140,10 @@ class CLI
 	 */
 	public function commands(): array
 	{
-		$core   = $this->commandsInDirectory($this->roots['commands.core']);
-		$global = $this->commandsInDirectory($this->roots['commands.global']);
-		$local  = $this->commandsInDirectory($this->roots['commands.local']);
+		$core    = $this->commandsInDirectory($this->roots['commands.core']);
+		$global  = $this->commandsInDirectory($this->roots['commands.global']);
+		$local   = $this->commandsInDirectory($this->roots['commands.local']);
+		$plugins = [];
 
 		foreach ($local as $index => $command) {
 			if (in_array($command, $core) === true) {
@@ -150,10 +151,21 @@ class CLI
 			}
 		}
 
+		if ($this->kirby) {
+			$extensions = $this->kirby->extensions('commands');
+
+			foreach ($extensions as $name => $command) {
+				if (in_array($name, $core) === false) {
+					$plugins[] = $name;
+				}
+			}
+		}
+
 		return [
-			'core'   => $core,
-			'global' => $global,
-			'custom' => $local
+			'core'    => $core,
+			'global'  => $global,
+			'custom'  => $local,
+			'plugins' => $plugins
 		];
 	}
 
@@ -343,8 +355,22 @@ class CLI
 	public function load(string $name): callable|array
 	{
 		// convert the name to a path
-		$name    = str_replace(':', '/', $name);
-		$command = require $this->commandFile($name);
+		$path = str_replace(':', '/', $name);
+
+		try {
+			$command = require $this->commandFile($path);
+		} catch (Throwable $e) {
+			if (!$this->kirby) {
+				throw $e;
+			}
+
+			// try to load a plugin command
+			$command = $this->kirby->extension('commands', $name);
+
+			if (empty($command) === true) {
+				throw $e;
+			}
+		}
 
 		// validate the command format
 		if (is_array($command) === false) {

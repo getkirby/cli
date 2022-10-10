@@ -42,7 +42,7 @@ class CLI
 	{
 		$this->roots = [];
 
-		if (function_exists('kirby') === true) {
+		if (function_exists('kirby') === true && class_exists('Kirby\Cms\App') === true) {
 			$this->kirby = App::instance();
 			$this->roots = $this->kirby->roots()->toArray();
 		}

@@ -31,6 +31,8 @@ return [
 		// extract the zip file
 		exec('unzip ' . $file . ' -d ' . $to);
 
+		$to = realpath($to);
+
 		// find the archive folder in that tmp dir
 		$archive = glob($to . '/*', GLOB_ONLYDIR)[0] ?? null;
 
@@ -38,10 +40,7 @@ return [
 			throw new Exception('The archive directory could not be found');
 		}
 
-		// move everything one level up
-		exec('mv ' . $to . '/*/* ' . $to);
-
-		// remove the archive folder
+		exec('mv ' . $to . '/*/{.[!.],}* ' . $to . '/');
 		exec('rm -rf ' . $archive);
 	}
 ];

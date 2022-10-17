@@ -1,7 +1,19 @@
 #!/usr/bin/env php
 <?php
 
-$index = getcwd() . '/index.php';
+$files = glob(getcwd().'/*/index.php', GLOB_BRACE);
+
+$path = array_map(function ($file) {
+	preg_match_all("#(/www/|/public/|/public_html/)#i", $file, $matches);
+
+	if(!empty($matches))
+	{
+		return $matches;
+	}
+}, $files);
+
+$path = $path[0][0][0] ?? '/';
+$index = getcwd().($path ?? '/').'index.php';
 
 // try to load Kirby’s index.php
 if (file_exists($index) === true) {

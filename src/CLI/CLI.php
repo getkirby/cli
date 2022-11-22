@@ -269,7 +269,7 @@ class CLI
 		$local = $this->kirby?->root('commands') ?? getcwd() . '/commands';
 
 		$this->roots['commands.core']   ??= dirname(__DIR__, 2) . '/commands';
-		$this->roots['commands.global'] ??= getenv('HOME') . '/.kirby/commands';
+		$this->roots['commands.global'] ??= $this->home() . '/commands';
 		$this->roots['commands.local']  ??= $local;
 	}
 
@@ -309,6 +309,21 @@ class CLI
 		}
 
 		return $folder;
+	}
+
+	/**
+	 * Gets path for global commands (respecting 'XDG_CONFIG_HOME' if set)
+	 *
+	 * For more information on the 'XDG Base Directory Speicfications',
+	 * see https://specifications.freedesktop.org/basedir-spec/latest
+	 */
+	public function home(): string
+	{
+		if ($path = getenv('XDG_CONFIG_HOME')) {
+			return $path . '/kirby';
+		}
+
+		return getenv('HOME') . '/.kirby';
 	}
 
 	/**

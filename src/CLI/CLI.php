@@ -491,6 +491,15 @@ class CLI
 		$climate->arguments->add($command['args'] ?? []);
 		$climate->description($command['description'] ?? 'kirby ' . $name);
 
+		// add the quiet option
+		$climate->arguments->add([
+			'quiet' => [
+				'description' => 'Surpresses any output',
+				'longPrefix'  => 'quiet',
+				'noValue'     => true
+			]
+		]);
+
 		// add help as last argument
 		$climate->arguments->add([
 			'help' => [
@@ -514,6 +523,12 @@ class CLI
 			$climate->arguments->parse($argv);
 		} catch (Throwable $e) {
 			$exception = $e;
+		}
+
+		// enable quiet mode
+		if ($climate->arguments->get('quiet')) {
+			$climate->output->add('quiet', new QuietWriter());
+			$climate->output->defaultTo('quiet');
 		}
 
 		if ($climate->arguments->defined('help', $argv)) {

@@ -9,13 +9,6 @@
 		"cli",
 		"command"
 	],
-	"homepage": "https://getkirby.com",
-	"support": {
-		"email": "support@getkirby.com",
-		"issues": "https://github.com/getkirby/cli/issues",
-		"forum": "https://forum.getkirby.com",
-		"source": "https://github.com/getkirby/cli"
-	},
 	"authors": [
 		{
 			"name": "Kirby Team",
@@ -23,6 +16,13 @@
 			"homepage": "https://getkirby.com"
 		}
 	],
+	"homepage": "https://getkirby.com",
+	"support": {
+		"email": "support@getkirby.com",
+		"issues": "https://github.com/getkirby/cli/issues",
+		"forum": "https://forum.getkirby.com",
+		"source": "https://github.com/getkirby/cli"
+	},
 	"require": {
 		"composer-runtime-api": "^2.2",
 		"ext-zip": "*",
@@ -32,7 +32,10 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"Kirby\\": "src/"
+			"Kirby\\": [
+				"src/",
+				"tests/"
+			]
 		}
 	},
 	"config": {
@@ -42,6 +45,22 @@
 		"bin/kirby"
 	],
 	"scripts": {
-		"fix": "php-cs-fixer fix"
+		"analyze": [
+			"@analyze:composer",
+			"@analyze:psalm",
+			"@analyze:phpcpd",
+			"@analyze:phpmd"
+		],
+		"analyze:composer": "composer validate --strict --no-check-version --no-check-all",
+		"analyze:phpcpd": "phpcpd --fuzzy --exclude tests --exclude vendor .",
+		"analyze:phpmd": "phpmd . ansi phpmd.xml.dist --exclude 'tests/*,vendor/*'",
+		"analyze:psalm": "psalm",
+		"ci": [
+			"@fix",
+			"@analyze",
+			"@test"
+		],
+		"fix": "php-cs-fixer fix",
+		"test": "phpunit --stderr --coverage-html=tests/coverage"
 	}
 }

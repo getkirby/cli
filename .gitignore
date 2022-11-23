@@ -1,12 +1,13 @@
-# os
+# OS files
 .DS_Store
 
-# cs fixer
-.php-cs-fixer.cache
-
-# tests
-.phpunit.result.cache
-/tests/coverage
-
-# ignore all the vendor cruft
+# Vendor files
+/node_modules
 /vendor
+
+# Cache and temporary files
+/.cache
+/.php-cs-fixer.cache
+/.phpunit.result.cache
+/tests/coverage
+/tests/*/tmp

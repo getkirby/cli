@@ -53,7 +53,7 @@
 		],
 		"analyze:composer": "composer validate --strict --no-check-version --no-check-all",
 		"analyze:phpcpd": "phpcpd --fuzzy --exclude tests --exclude vendor .",
-		"analyze:phpmd": "phpmd . ansi phpmd.xml.dist --exclude 'tests/*,vendor/*'",
+		"analyze:phpmd": "phpmd . ansi phpmd.xml.dist --exclude 'tests/*,vendor/*,_templates/*'",
 		"analyze:psalm": "psalm",
 		"ci": [
 			"@fix",

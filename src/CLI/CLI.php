@@ -88,7 +88,7 @@ class CLI
 	 */
 	public function climate(): CLImate
 	{
-		return $this->climate;
+		return $this->climate ??= new CLImate();
 	}
 
 	/**
@@ -201,7 +201,7 @@ class CLI
 
 		asort($commands);
 
-		return $commands;
+		return array_values($commands);
 	}
 
 	/**
@@ -305,7 +305,7 @@ class CLI
 		}
 
 		if (str_starts_with($folder, '.') === true) {
-			return $current . $folder;
+			return $current . '/' . $folder;
 		}
 
 		return $folder;
@@ -467,10 +467,10 @@ class CLI
 	public function run(?string $name = null, ...$args): void
 	{
 		// create clean new climate instance
-		$this->climate = new CLImate();
+		$climate = $this->climate();
 
 		// custom commands
-		$this->climate->style->addCommand('success', ['background_light_green', 'black']);
+		$climate->style->addCommand('success', ['background_light_green', 'black']);
 
 		// no command? show info about the cli
 		if (empty($name) === true) {
@@ -479,7 +479,7 @@ class CLI
 		}
 
 		// add the command as first argument
-		$this->climate->arguments->add([
+		$climate->arguments->add([
 			'command' => [
 				'description' => 'The name of the command',
 				'required' => true
@@ -488,11 +488,11 @@ class CLI
 
 		$command = $this->load($name);
 
-		$this->climate->arguments->add($command['args'] ?? []);
-		$this->climate->description($command['description'] ?? 'kirby ' . $name);
+		$climate->arguments->add($command['args'] ?? []);
+		$climate->description($command['description'] ?? 'kirby ' . $name);
 
 		// add help as last argument
-		$this->climate->arguments->add([
+		$climate->arguments->add([
 			'help' => [
 				'description' => 'Prints a usage statement',
 				'prefix'      => 'h',
@@ -511,13 +511,13 @@ class CLI
 		$exception = null;
 
 		try {
-			$this->climate->arguments->parse($argv);
+			$climate->arguments->parse($argv);
 		} catch (Throwable $e) {
 			$exception = $e;
 		}
 
-		if ($this->climate->arguments->defined('help', $argv)) {
-			$this->climate->usage($argv);
+		if ($climate->arguments->defined('help', $argv)) {
+			$climate->usage($argv);
 			return;
 		}
 

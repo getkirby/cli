@@ -151,9 +151,9 @@ jobs:
         if: always() && steps.composerCache2.outcome == 'success'
         run: composer install --prefer-dist
 
-      - name: Check for unused Composer dependencies
-        if: always() && steps.composerInstall.outcome == 'success'
-        run: composer-unused --no-progress
+      # - name: Check for unused Composer dependencies
+      #   if: always() && steps.composerInstall.outcome == 'success'
+      #   run: composer-unused --no-progress
 
       - name: Check for duplicated code
         if: always() && steps.composerInstall.outcome == 'success'
@@ -161,7 +161,7 @@ jobs:
 
       - name: Statically analyze using PHPMD
         if: always() && steps.composerInstall.outcome == 'success'
-        run: phpmd . github phpmd.xml.dist --exclude 'tests/*,vendor/*'
+        run: phpmd . github phpmd.xml.dist --exclude 'tests/*,vendor/*,_templates/*'
 
   coding-style:
     name: Coding Style

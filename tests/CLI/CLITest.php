@@ -69,15 +69,19 @@ class CLITest extends TestCase
 	 */
 	public function testHome()
 	{
-		$before = getenv('HOME');
+		$homeBefore    = getenv('HOME');
+		$xdgHomeBefore = getenv('XDG_CONFIG_HOME');
 
+		// unset xdg config home to make sure home is used
+		putenv('XDG_CONFIG_HOME');
 		putenv('HOME=/test');
 
 		$cli = new CLI();
 
 		$this->assertSame('/test/.kirby', $cli->home());
 
-		putenv('HOME=' . $before);
+		putenv('HOME=' . $homeBefore);
+		putenv('XDG_CONFIG_HOME=' . $xdgHomeBefore);
 	}
 
 	/**

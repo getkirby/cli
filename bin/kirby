@@ -1,23 +1,15 @@
 #!/usr/bin/env php
 <?php
 
-$index = getcwd() . '/index.php';
+namespace Kirby\CLI;
 
-// try to load Kirby’s index.php
-if (file_exists($index) === true) {
-	// switch off the renderer to
-	// avoid any output in the CLI
-	$_ENV['KIRBY_RENDER'] = false;
+require_once __DIR__ . '/../bootstrap.php';
 
-	ob_start();
-	require $index;
-	ob_end_clean();
+// try to load the kirby instance
+bootstrap();
 
-	// rendering could be useful in commands
-	// again. That's why we switch it back on
-	$_ENV['KIRBY_RENDER'] = true;
-}
-
+// load dependencies
 require_once $_composer_autoload_path ?? __DIR__ . '/../vendor/autoload.php';
 
-Kirby\CLI\CLI::command(...array_slice($argv, 1));
+// run the command
+CLI::command(...array_slice($argv, 1));

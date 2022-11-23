@@ -24,11 +24,11 @@
 		"source": "https://github.com/getkirby/cli"
 	},
 	"require": {
-		"composer-runtime-api": "^2.2",
+		"php": ">=8.0.0 <8.2.0",
 		"ext-zip": "*",
+		"composer-runtime-api": "^2.2",
 		"guzzlehttp/guzzle": "^7.5",
-		"league/climate": "^3.8",
-		"php": ">=8.0.0 <8.2.0"
+		"league/climate": "^3.8"
 	},
 	"autoload": {
 		"psr-4": {
@@ -38,16 +38,15 @@
 			]
 		}
 	},
-	"config": {
-		"optimize-autoloader": true
-	},
 	"bin": [
 		"bin/kirby"
 	],
+	"config": {
+		"optimize-autoloader": true
+	},
 	"scripts": {
 		"analyze": [
 			"@analyze:composer",
-			"@analyze:psalm",
 			"@analyze:phpcpd",
 			"@analyze:phpmd"
 		],

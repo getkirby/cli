@@ -57,7 +57,6 @@
 		"analyze:psalm": "psalm",
 		"ci": [
 			"@fix",
-			"@analyze",
 			"@test"
 		],
 		"fix": "php-cs-fixer fix",

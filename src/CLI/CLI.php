@@ -40,7 +40,8 @@ class CLI
 	 */
 	public function __construct()
 	{
-		$this->roots = [];
+		$this->climate = new CLImate;
+		$this->roots   = [];
 
 		if (function_exists('kirby') === true && class_exists('Kirby\Cms\App') === true) {
 			$this->kirby = App::instance();
@@ -88,7 +89,7 @@ class CLI
 	 */
 	public function climate(): CLImate
 	{
-		return $this->climate ??= new CLImate();
+		return $this->climate;
 	}
 
 	/**
@@ -467,10 +468,10 @@ class CLI
 	public function run(?string $name = null, ...$args): void
 	{
 		// create clean new climate instance
-		$climate = $this->climate();
+		$this->climate = new CLImate();
 
 		// custom commands
-		$climate->style->addCommand('success', ['background_light_green', 'black']);
+		$this->climate->style->addCommand('success', ['background_light_green', 'black']);
 
 		// no command? show info about the cli
 		if (empty($name) === true) {
@@ -479,7 +480,7 @@ class CLI
 		}
 
 		// add the command as first argument
-		$climate->arguments->add([
+		$this->climate->arguments->add([
 			'command' => [
 				'description' => 'The name of the command',
 				'required' => true
@@ -488,11 +489,11 @@ class CLI
 
 		$command = $this->load($name);
 
-		$climate->arguments->add($command['args'] ?? []);
-		$climate->description($command['description'] ?? 'kirby ' . $name);
+		$this->climate->arguments->add($command['args'] ?? []);
+		$this->climate->description($command['description'] ?? 'kirby ' . $name);
 
 		// add the quiet option
-		$climate->arguments->add([
+		$this->climate->arguments->add([
 			'quiet' => [
 				'description' => 'Surpresses any output',
 				'longPrefix'  => 'quiet',
@@ -501,7 +502,7 @@ class CLI
 		]);
 
 		// add help as last argument
-		$climate->arguments->add([
+		$this->climate->arguments->add([
 			'help' => [
 				'description' => 'Prints a usage statement',
 				'prefix'      => 'h',
@@ -520,19 +521,19 @@ class CLI
 		$exception = null;
 
 		try {
-			$climate->arguments->parse($argv);
+			$this->climate->arguments->parse($argv);
 		} catch (Throwable $e) {
 			$exception = $e;
 		}
 
 		// enable quiet mode
-		if ($climate->arguments->get('quiet')) {
-			$climate->output->add('quiet', new QuietWriter());
-			$climate->output->defaultTo('quiet');
+		if ($this->climate->arguments->get('quiet')) {
+			$this->climate->output->add('quiet', new QuietWriter());
+			$this->climate->output->defaultTo('quiet');
 		}
 
-		if ($climate->arguments->defined('help', $argv)) {
-			$climate->usage($argv);
+		if ($this->climate->arguments->defined('help', $argv)) {
+			$this->climate->usage($argv);
 			return;
 		}
 

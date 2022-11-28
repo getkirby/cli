@@ -40,7 +40,7 @@ class CLI
 	 */
 	public function __construct()
 	{
-		$this->climate = new CLImate;
+		$this->climate = new CLImate();
 		$this->roots   = [];
 
 		if (function_exists('kirby') === true && class_exists('Kirby\Cms\App') === true) {

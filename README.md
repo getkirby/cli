@@ -2,9 +2,6 @@
 
 The Kirby command line interface helps simplifying common tasks with your Kirby installations.
 
-![kirby-cli](https://user-images.githubusercontent.com/24532/193451850-73b1404d-82e2-42d4-b62b-3122fdc3f005.png)
-
-
 ## Installation
 
 ### Via Composer
@@ -57,10 +54,13 @@ This should print the Kirby CLI version and a list of available commands
 - kirby make:plugin
 - kirby make:snippet
 - kirby make:template
+- kirby register
 - kirby remove:command
+- kirby roots
 - kirby unzip
 - kirby uuid:generate
 - kirby uuid:populate
+- kirby uuid:remove
 - kirby version
 ```
 
@@ -99,6 +99,24 @@ kirby make:command hello --global
 ```
 
 The command file will then be place in `~/.kirby/commands/hello.php` and is automatically available everywhere.
+
+## Command plugins
+
+Your Kirby plugins can define their own set of commands: https://getkirby.com/docs/reference/plugins/extensions/commands
+
+```php
+Kirby::plugin('your/plugin', [
+  'commands' => [
+    'your-plugin:test' => [
+      'description' => 'Nice command',
+      'args' => [],
+      'command' => function ($cli) {
+        $cli->success('My first plugin command');
+      }
+    ]
+  ]
+]);
+```
 
 ## Check for installed commands
 
@@ -244,19 +262,6 @@ return [
         $cli->success('Starterkit and plainkit have been installed');
     }
 ];
-```
-
-### Where to place local commands
-
-The config can also set where local commands are stored. By default, they are stored in `/site/commands`
-
-```json
-{
-    "roots": {
-        "commands.local": "./commands",
-        "commands.global": "/var/kirby/commands",
-    }
-}
 ```
 
 ## What's Kirby?

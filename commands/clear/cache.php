@@ -14,7 +14,7 @@ return [
 	'command' => static function (CLI $cli): void {
 		$kirby = $cli->kirby();
 		$name  = $cli->argOrPrompt('name', 'Which cache should be emptied? (press <Enter> to clear the pages cache)', false);
-		$name ??= 'pages';
+		$name  = empty($name) === true ? 'pages' : $name;
 
 		$kirby->cache($name)->flush();
 

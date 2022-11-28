@@ -35,6 +35,15 @@ return [
 			}
 		}
 
+		if (count($commands['plugins']) > 0) {
+			$cli->br();
+			$cli->out('Plugin commands:');
+
+			foreach ($commands['plugins'] as $command) {
+				$cli->out('- kirby ' . $command);
+			}
+		}
+
 		$cli->br();
 
 		$cli->success('Have fun with the Kirby CLI!');

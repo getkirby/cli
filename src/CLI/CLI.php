@@ -40,13 +40,12 @@ class CLI
 	 */
 	public function __construct()
 	{
-		$this->options = $this->createOptions();
-		$this->roots   = $this->createRoots($this->options['roots'] ?? []);
+		$this->climate = new CLImate();
+		$this->roots   = [];
 
-		if (function_exists('kirby') === true) {
-			$this->kirby = new App([
-				'roots' => $this->roots
-			]);
+		if (function_exists('kirby') === true && class_exists('Kirby\Cms\App') === true) {
+			$this->kirby = App::instance();
+			$this->roots = $this->kirby->roots()->toArray();
 		}
 
 		$this->createCommandRoots();
@@ -142,9 +141,10 @@ class CLI
 	 */
 	public function commands(): array
 	{
-		$core   = $this->commandsInDirectory($this->roots['commands.core']);
-		$global = $this->commandsInDirectory($this->roots['commands.global']);
-		$local  = $this->commandsInDirectory($this->roots['commands.local']);
+		$core    = $this->commandsInDirectory($this->roots['commands.core']);
+		$global  = $this->commandsInDirectory($this->roots['commands.global']);
+		$local   = $this->commandsInDirectory($this->roots['commands.local']);
+		$plugins = [];
 
 		foreach ($local as $index => $command) {
 			if (in_array($command, $core) === true) {
@@ -152,10 +152,21 @@ class CLI
 			}
 		}
 
+		if ($this->kirby) {
+			$extensions = $this->kirby->extensions('commands');
+
+			foreach ($extensions as $name => $command) {
+				if (in_array($name, $core) === false) {
+					$plugins[] = $name;
+				}
+			}
+		}
+
 		return [
-			'core'   => $core,
-			'global' => $global,
-			'custom' => $local
+			'core'    => $core,
+			'global'  => $global,
+			'custom'  => $local,
+			'plugins' => $plugins
 		];
 	}
 
@@ -191,7 +202,7 @@ class CLI
 
 		asort($commands);
 
-		return $commands;
+		return array_values($commands);
 	}
 
 	/**
@@ -256,27 +267,11 @@ class CLI
 	 */
 	protected function createCommandRoots(): void
 	{
-		$base = $this->kirby ? $this->kirby->root('site') : getcwd();
+		$local = $this->kirby?->root('commands') ?? getcwd() . '/commands';
 
-		$this->roots['commands.core']   ??= __DIR__ . '/../../commands';
-		$this->roots['commands.global'] ??= getenv('HOME') . '/.kirby/commands';
-		$this->roots['commands.local']  ??= $base . '/commands';
-	}
-
-	/**
-	 * Loads CLI options from a custom json file.
-	 */
-	protected function createOptions(): array
-	{
-		$file = getcwd() . '/kirby.cli.json';
-
-		if (is_file($file) === false) {
-			return [];
-		}
-
-		$config = file_get_contents($file);
-
-		return json_decode($config, true);
+		$this->roots['commands.core']   ??= dirname(__DIR__, 2) . '/commands';
+		$this->roots['commands.global'] ??= $this->home() . '/commands';
+		$this->roots['commands.local']  ??= $local;
 	}
 
 	/**
@@ -311,10 +306,25 @@ class CLI
 		}
 
 		if (str_starts_with($folder, '.') === true) {
-			return $current . $folder;
+			return $current . '/' . $folder;
 		}
 
 		return $folder;
+	}
+
+	/**
+	 * Gets path for global commands (respecting 'XDG_CONFIG_HOME' if set)
+	 *
+	 * For more information on the 'XDG Base Directory Speicfications',
+	 * see https://specifications.freedesktop.org/basedir-spec/latest
+	 */
+	public function home(): string
+	{
+		if ($path = getenv('XDG_CONFIG_HOME')) {
+			return $path . '/kirby';
+		}
+
+		return getenv('HOME') . '/.kirby';
 	}
 
 	/**
@@ -361,8 +371,22 @@ class CLI
 	public function load(string $name): callable|array
 	{
 		// convert the name to a path
-		$name    = str_replace(':', '/', $name);
-		$command = require $this->commandFile($name);
+		$path = str_replace(':', '/', $name);
+
+		try {
+			$command = require $this->commandFile($path);
+		} catch (Throwable $e) {
+			if (!$this->kirby) {
+				throw $e;
+			}
+
+			// try to load a plugin command
+			$command = $this->kirby->extension('commands', $name);
+
+			if (empty($command) === true) {
+				throw $e;
+			}
+		}
 
 		// validate the command format
 		if (is_array($command) === false) {
@@ -431,6 +455,14 @@ class CLI
 	}
 
 	/**
+	 * Returns all roots
+	 */
+	public function roots(): array
+	{
+		return $this->roots;
+	}
+
+	/**
 	 * Load and execute a command
 	 */
 	public function run(?string $name = null, ...$args): void
@@ -460,6 +492,15 @@ class CLI
 		$this->climate->arguments->add($command['args'] ?? []);
 		$this->climate->description($command['description'] ?? 'kirby ' . $name);
 
+		// add the quiet option
+		$this->climate->arguments->add([
+			'quiet' => [
+				'description' => 'Surpresses any output',
+				'longPrefix'  => 'quiet',
+				'noValue'     => true
+			]
+		]);
+
 		// add help as last argument
 		$this->climate->arguments->add([
 			'help' => [
@@ -483,6 +524,12 @@ class CLI
 			$this->climate->arguments->parse($argv);
 		} catch (Throwable $e) {
 			$exception = $e;
+		}
+
+		// enable quiet mode
+		if ($this->climate->arguments->get('quiet')) {
+			$this->climate->output->add('quiet', new QuietWriter());
+			$this->climate->output->defaultTo('quiet');
 		}
 
 		if ($this->climate->arguments->defined('help', $argv)) {

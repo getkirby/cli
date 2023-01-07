@@ -338,9 +338,9 @@ class CLI
 	/**
 	 * Creates pretty json
 	 */
-	public function json(array $data = []): string
+	public function json(array $data = []): CLImate
 	{
-		return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+		return $this->climate->out(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 	}
 
 	/**

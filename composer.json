@@ -24,7 +24,7 @@
 		"source": "https://github.com/getkirby/cli"
 	},
 	"require": {
-		"php": ">=8.0.0 <8.2.0",
+		"php": ">=8.0.0 <8.3.0",
 		"ext-zip": "*",
 		"composer-runtime-api": "^2.2",
 		"guzzlehttp/guzzle": "^7.5",

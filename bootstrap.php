@@ -41,14 +41,14 @@ function index(): string|null
 	];
 
 	foreach ($locations as $location) {
-		// Try to find the index.php in current working directory
+		// try to find the index.php in current working directory
 		$index = realpath(getcwd() . '/' . $location . '/index.php');
 
 		if ($index !== false) {
 			return $index;
 		}
 
-		// Try to find the index.php from the (possible) root of the project
+		// try to find the index.php from the (possible) root of the project
 		// in the __ROOT__ <- /vendor/getkirby/cli directory
 		$index = realpath(dirname(__DIR__, 3) . '/' . $location . '/index.php');
 

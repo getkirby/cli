@@ -24,11 +24,11 @@
 		"source": "https://github.com/getkirby/cli"
 	},
 	"require": {
-		"php": ">=8.0.0 <8.3.0",
+		"php": ">=8.1.0 <8.4.0",
 		"ext-zip": "*",
 		"composer-runtime-api": "^2.2",
-		"guzzlehttp/guzzle": "^7.5",
-		"league/climate": "^3.8"
+		"guzzlehttp/guzzle": "^7.8",
+		"league/climate": "^3.8.2"
 	},
 	"autoload": {
 		"psr-4": {

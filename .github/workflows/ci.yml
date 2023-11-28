@@ -9,32 +9,32 @@ jobs:
     timeout-minutes: 5
     strategy:
       matrix:
-        php: ["8.0", "8.1", "8.2"]
+        php: ["8.1", "8.2", "8.3"]
     env:
       extensions: mbstring, pcov
       ini: pcov.directory=., "pcov.exclude=\"~(vendor|tests)~\""
 
     steps:
       - name: Checkout
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # pin@v3
 
       - name: Setup PHP cache environment
         id: ext-cache
-        uses: shivammathur/cache-extensions@fc01a9cdc93341e96c2078d848f2e96240d83c17 # pin@v1
+        uses: shivammathur/cache-extensions@d622719c5f9eb1f119bee963028d0c0b984525c5 # pin@v1
         with:
           php-version: ${{ matrix.php }}
           extensions: ${{ env.extensions }}
           key: php-v1
 
       - name: Cache PHP extensions
-        uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d # pin@v3
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # pin@v3
         with:
           path: ${{ steps.ext-cache.outputs.dir }}
           key: ${{ steps.ext-cache.outputs.key }}
           restore-keys: ${{ steps.ext-cache.outputs.key }}
 
       - name: Setup PHP environment
-        uses: shivammathur/setup-php@3eda58347216592f618bb1dff277810b6698e4ca # pin@v2
+        uses: shivammathur/setup-php@e6f75134d35752277f093989e72e140eaa222f35 # pin@v2
         with:
           php-version: ${{ matrix.php }}
           extensions: ${{ env.extensions }}
@@ -52,7 +52,7 @@ jobs:
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache dependencies
-        uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d # pin@v3
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # pin@v3
         with:
           path: ${{ steps.composerCache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
@@ -63,7 +63,7 @@ jobs:
 
       - name: Cache analysis data
         id: finishPrepare
-        uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d # pin@v3
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # pin@v3
         with:
           path: ~/.cache/psalm
           key: backend-analysis-${{ matrix.php }}-v2
@@ -71,7 +71,6 @@ jobs:
       - name: Run tests
         if: always() && steps.finishPrepare.outcome == 'success'
         run: phpunit --coverage-clover ${{ github.workspace }}/clover.xml
-
       # - name: Statically analyze using Psalm
       #   if: always() && steps.finishPrepare.outcome == 'success'
       #   run: psalm --output-format=github --php-version=${{ matrix.php }}
@@ -96,18 +95,18 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # pin@v3
 
       - name: Setup PHP cache environment
         id: ext-cache
-        uses: shivammathur/cache-extensions@fc01a9cdc93341e96c2078d848f2e96240d83c17 # pin@v1
+        uses: shivammathur/cache-extensions@d622719c5f9eb1f119bee963028d0c0b984525c5 # pin@v1
         with:
           php-version: ${{ env.php }}
           extensions: ${{ env.extensions }}
           key: php-v1
 
       - name: Cache PHP extensions
-        uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d # pin@v3
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # pin@v3
         with:
           path: ${{ steps.ext-cache.outputs.dir }}
           key: ${{ steps.ext-cache.outputs.key }}
@@ -115,7 +114,7 @@ jobs:
 
       - name: Setup PHP environment
         id: finishPrepare
-        uses: shivammathur/setup-php@3eda58347216592f618bb1dff277810b6698e4ca # pin@v2
+        uses: shivammathur/setup-php@e6f75134d35752277f093989e72e140eaa222f35 # pin@v2
         with:
           php-version: ${{ env.php }}
           extensions: ${{ env.extensions }}
@@ -140,7 +139,7 @@ jobs:
       - name: Cache dependencies
         id: composerCache2
         if: always() && steps.composerCache1.outcome == 'success'
-        uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d # pin@v3
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # pin@v3
         with:
           path: ${{ steps.composerCache1.outputs.dir }}
           key: ${{ runner.os }}-composer-locked-${{ hashFiles('**/composer.lock') }}
@@ -171,17 +170,17 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # pin@v3
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # pin@v3
 
       - name: Setup PHP environment
-        uses: shivammathur/setup-php@3eda58347216592f618bb1dff277810b6698e4ca # pin@v2
+        uses: shivammathur/setup-php@e6f75134d35752277f093989e72e140eaa222f35 # pin@v2
         with:
           coverage: none
           tools: php-cs-fixer:3.8.0
 
       - name: Cache analysis data
         id: finishPrepare
-        uses: actions/cache@c3f1317a9e7b1ef106c153ac8c0f00fed3ddbc0d # pin@v3
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # pin@v3
         with:
           path: ~/.php-cs-fixer
           key: coding-style
@@ -192,14 +191,12 @@ jobs:
           PHP_CS_FIXER_IGNORE_ENV: 1
         # Use the --dry-run flag in push builds to get a failed CI status
         run: >
-          php-cs-fixer fix --diff
-          ${{ github.event_name != 'pull_request' && '--dry-run' || '' }}
+          php-cs-fixer fix --diff ${{ github.event_name != 'pull_request' && '--dry-run' || '' }}
 
       - name: Create code suggestions from the coding style changes (on PR only)
         if: >
-          always() && steps.finishPrepare.outcome == 'success' &&
-          github.event_name == 'pull_request'
-        uses: reviewdog/action-suggester@ab82daa6ea9b84fe43db7747bb10fa087f34e1ab # pin@v1
+          always() && steps.finishPrepare.outcome == 'success' && github.event_name == 'pull_request'
+        uses: reviewdog/action-suggester@94877e550e6b522dc1d21231974b645ff2f084ce # pin@v1
         with:
           tool_name: PHP-CS-Fixer
           fail_on_error: "true"

@@ -2,6 +2,7 @@
 
 namespace Kirby\CLI;
 
+use Exception;
 use League\CLImate\CLImate;
 
 /**
@@ -169,7 +170,7 @@ class CLITest extends TestCase
 	{
 		$cli = new CLI();
 
-		$this->expectException('Exception');
+		$this->expectException(Exception::class);
 		$this->expectExceptionMessage('The command does not exist');
 
 		$cli->load('foo');
@@ -182,7 +183,7 @@ class CLITest extends TestCase
 	{
 		$cli = new CLI();
 
-		$this->expectException('Exception');
+		$this->expectException(Exception::class);
 		$this->expectExceptionMessage('The command does not define a command action');
 
 		$cli->load('invalid-action');
@@ -195,7 +196,7 @@ class CLITest extends TestCase
 	{
 		$cli = new CLI();
 
-		$this->expectException('Exception');
+		$this->expectException(Exception::class);
 		$this->expectExceptionMessage('Invalid command format. The command must be defined as array');
 
 		$cli->load('invalid-format');

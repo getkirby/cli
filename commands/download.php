@@ -27,7 +27,7 @@ return [
 					try {
 						if ($total > 0 && $downloaded > 0) {
 							$progress->total($total);
-							$progress->current($downloaded);
+							$progress->current($downloaded, '');
 						}
 					} catch (Throwable $e) {
 						$cli->out($e->getMessage());

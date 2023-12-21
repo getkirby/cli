@@ -40,8 +40,8 @@ return [
 		$zip = $cli->dir() . '/' . $folder . '-' . time() . '.zip';
 		$dir = $cli->dir() . '/' . $folder;
 
-		$cli->confirmToDelete($zip, 'The zip file existst. Do you want to delete it?');
-		$cli->confirmToDelete($dir, 'The directory existst. Do you want to delete it?');
+		$cli->confirmToDelete($zip, 'The zip file exists. Do you want to delete it?');
+		$cli->confirmToDelete($dir, 'The directory exists. Do you want to delete it?');
 
 		// download the zip file
 		$cli->run('download', $url, $zip);

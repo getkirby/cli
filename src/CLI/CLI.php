@@ -102,7 +102,7 @@ class CLI
 		try {
 			$cli->run(...$args);
 		} catch (Throwable $e) {
-			$cli->error($e->getMessage());
+			$cli->error((string)$e);
 		}
 	}
 

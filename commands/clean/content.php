@@ -3,53 +3,52 @@
 declare(strict_types = 1);
 
 use Kirby\CLI\CLI;
-use Kirby\Cms\Collection;
 
 function clean(
-	Collection $collection,
+	Generator $collection,
 	array|null $ignore = null,
 	string|null $lang = null
 ): void {
-    foreach($collection as $item) {
-        // get all fields in the content file
-        $contentFields = $item->content($lang)->fields();
+	foreach($collection as $item) {
+		// get all fields in the content file
+		$contentFields = $item->content($lang)->fields();
 
-        // unset all fields in the `$ignore` array
-        foreach ($ignore as $field) {
-            if (array_key_exists($field, $contentFields) === true) {
-                unset($contentFields[$field]);
-            }
-        }
+		// unset all fields in the `$ignore` array
+		foreach ($ignore as $field) {
+			if (array_key_exists($field, $contentFields) === true) {
+				unset($contentFields[$field]);
+			}
+		}
 
-        // get the keys
-        $contentFields = array_keys($contentFields);
+		// get the keys
+		$contentFields = array_keys($contentFields);
 
-        // get all field keys from blueprint
-        $blueprintFields = array_keys($item->blueprint()->fields());
+		// get all field keys from blueprint
+		$blueprintFields = array_keys($item->blueprint()->fields());
 
-        // get all field keys that are in $contentFields but not in $blueprintFields
-        $fieldsToBeDeleted = array_diff($contentFields, $blueprintFields);
+		// get all field keys that are in $contentFields but not in $blueprintFields
+		$fieldsToBeDeleted = array_diff($contentFields, $blueprintFields);
 
-        // update page only if there are any fields to be deleted
-        if (count($fieldsToBeDeleted) > 0) {
+		// update page only if there are any fields to be deleted
+		if (count($fieldsToBeDeleted) > 0) {
 
-            // flip keys and values and set new values to null
-            $data = array_map(fn ($value) => null, array_flip($fieldsToBeDeleted));
+			// flip keys and values and set new values to null
+			$data = array_map(fn ($value) => null, array_flip($fieldsToBeDeleted));
 
-            // try to update the page with the data
-            try {
-                $item->update($data, $lang);
-            } catch (Exception $e) {
-                throw $e->getMessage();
-            }
-        }
-    }
+			// try to update the page with the data
+			try {
+				$item->update($data, $lang);
+			} catch (Exception $e) {
+				throw $e->getMessage();
+			}
+		}
+	}
 }
 
 return [
 	'description' => 'Deletes all fields from page, file or user content files that are not defined in the blueprint, no matter if they contain content or not.',
 	'command' => static function (CLI $cli): void {
-		$kirby = $cli->kirby()->root('media');
+		$kirby = $cli->kirby();
 
 		// Authenticate as almighty
 		$kirby->impersonate('kirby');

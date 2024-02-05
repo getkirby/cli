@@ -48,6 +48,9 @@ function clean(
 return [
 	'description' => 'Deletes all fields from page, file or user content files that are not defined in the blueprint, no matter if they contain content or not.',
 	'command' => static function (CLI $cli): void {
+
+		$cli->confirmToContinue('This will delete all fields from content files that are not defined in blueprints, no matter if they contain content or not. Are you sure?');
+
 		$kirby = $cli->kirby();
 
 		// Authenticate as almighty

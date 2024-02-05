@@ -1,6 +1,8 @@
 <?php
 
 $finder = PhpCsFixer\Finder::create()
+	->exclude('node_modules')
+	->exclude('_templates')
 	->in(__DIR__);
 
 $config = new PhpCsFixer\Config();

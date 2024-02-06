@@ -8,13 +8,12 @@ $finder = PhpCsFixer\Finder::create()
 $config = new PhpCsFixer\Config();
 return $config
 	->setRules([
-		'@PSR1' => true,
-		'@PSR2' => true,
+		'@PSR12' => true,
 		'align_multiline_comment' => ['comment_type' => 'phpdocs_like'],
 		'array_indentation' => true,
 		'array_syntax' => ['syntax' => 'short'],
 		'cast_spaces' => ['space' => 'none'],
-		'class_keyword_remove' => false,
+		// 'class_keyword_remove' => true, // replaces static::class with 'static' (won't work)
 		'combine_consecutive_issets' => true,
 		'combine_consecutive_unsets' => true,
 		'combine_nested_dirname' => true,
@@ -45,6 +44,7 @@ return $config
 		'no_unused_imports' => true,
 		'no_useless_return' => true,
 		'ordered_imports' => ['sort_algorithm' => 'alpha'],
+		// 'phpdoc_add_missing_param_annotation' => ['only_untyped' => false], // adds params in the wrong order
 		'phpdoc_align' => ['align' => 'left'],
 		'phpdoc_indent' => true,
 		'phpdoc_scalar' => true,

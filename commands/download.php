@@ -20,6 +20,7 @@ return [
 	'command' => static function (CLI $cli): void {
 		$client   = new Client();
 		$progress = $cli->progress()->total(100);
+		$file     = $cli->arg('file');
 
 		try {
 			$response = $client->get($cli->arg('url'), [
@@ -35,7 +36,7 @@ return [
 				},
 			]);
 
-			file_put_contents($cli->arg('file'), (string)$response->getBody());
+			file_put_contents($file, (string)$response->getBody());
 		} catch (Throwable $e) {
 			throw new Exception('The file could not be downloaded. (Status: ' . $e->getResponse()->getStatusCode() . ')');
 		}

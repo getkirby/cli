@@ -518,12 +518,11 @@ class CLI
 			...$args
 		];
 
-		$exception = null;
-
 		try {
 			$this->climate->arguments->parse($argv);
 		} catch (Throwable $e) {
-			$exception = $e;
+			$this->error($e->getMessage());
+			exit;
 		}
 
 		// enable quiet mode
@@ -535,10 +534,6 @@ class CLI
 		if ($this->climate->arguments->defined('help', $argv)) {
 			$this->climate->usage($argv);
 			return;
-		}
-
-		if ($exception !== null) {
-			throw $exception;
 		}
 
 		$command['command']($this);

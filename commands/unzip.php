@@ -29,7 +29,7 @@ return [
 		}
 
 		// extract the zip file
-		exec('unzip ' . $file . ' -d ' . $to);
+		exec('unzip ' . escapeshellarg($file) . ' -d ' . escapeshellarg($to));
 
 		$to = realpath($to);
 
@@ -40,7 +40,7 @@ return [
 			throw new Exception('The archive directory could not be found');
 		}
 
-		exec('mv ' . $to . '/*/{.[!.],}* ' . $to . '/');
-		exec('rm -rf ' . $archive);
+		exec('mv ' . escapeshellarg($to) . '/*/{.[!.],}* ' . escapeshellarg($to) . '/');
+		exec('rm -rf ' . escapeshellarg($archive));
 	}
 ];

@@ -37,6 +37,7 @@ This should print the Kirby CLI version and a list of available commands
 ## Available core commands
 
 ```
+- kirby clean:content
 - kirby clear:cache
 - kirby clear:media
 - kirby clear:sessions
@@ -279,7 +280,7 @@ return [
 
 ---
 
-© 2009-2022 Bastian Allgeier
+© 2009 Bastian Allgeier
 [getkirby.com](https://getkirby.com) · [License agreement](./LICENSE.md)
 
 

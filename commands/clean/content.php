@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 use Kirby\CLI\CLI;
 
-function clean(
+$cleanContent = function (
 	Generator $collection,
 	array|null $ignore = null,
 	string|null $lang = null
@@ -39,11 +39,11 @@ function clean(
 			$item->update($data, $lang);
 		}
 	}
-}
+};
 
 return [
 	'description' => 'Deletes all fields from page, file or user content files that are not defined in the blueprint, no matter if they contain content or not.',
-	'command' => static function (CLI $cli): void {
+	'command' => static function (CLI $cli) use ($cleanContent): void {
 
 		$cli->confirmToContinue('This will delete all fields from content files that are not defined in blueprints, no matter if they contain content or not. Are you sure?');
 
@@ -64,11 +64,11 @@ return [
 				$languages = $kirby->languages();
 
 				foreach ($languages as $language) {
-					clean($collection, $ignore, $language->code());
+					$cleanContent($collection, $ignore, $language->code());
 				}
 
 			} else {
-				clean($collection, $ignore);
+				$cleanContent($collection, $ignore);
 			}
 
 			$cli->success('The content files have been cleaned');

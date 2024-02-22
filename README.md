@@ -39,6 +39,7 @@ This should print the Kirby CLI version and a list of available commands
 ```
 - kirby clean:content
 - kirby clear:cache
+- kirby clear:lock
 - kirby clear:media
 - kirby clear:sessions
 - kirby download

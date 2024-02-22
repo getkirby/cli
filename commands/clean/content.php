@@ -36,11 +36,7 @@ function clean(
 			$data = array_map(fn ($value) => null, array_flip($fieldsToBeDeleted));
 
 			// try to update the page with the data
-			try {
-				$item->update($data, $lang);
-			} catch (Exception $e) {
-				throw $e->getMessage();
-			}
+			$item->update($data, $lang);
 		}
 	}
 }
@@ -63,17 +59,21 @@ return [
 		$ignore = ['uuid', 'title', 'slug', 'template', 'sort', 'focus'];
 
 		// call the script for all languages if multilang
-		if ($kirby->multilang() === true) {
-			$languages = $kirby->languages();
+		try {
+			if ($kirby->multilang() === true) {
+				$languages = $kirby->languages();
 
-			foreach ($languages as $language) {
-				clean($collection, $ignore, $language->code());
+				foreach ($languages as $language) {
+					clean($collection, $ignore, $language->code());
+				}
+
+			} else {
+				clean($collection, $ignore);
 			}
 
-		} else {
-			clean($collection, $ignore);
+			$cli->success('The content files have been cleaned');
+		} catch (Exception $e) {
+			$cli->error($e->getMessage());
 		}
-
-		$cli->success('The content files have been cleaned');
 	}
 ];

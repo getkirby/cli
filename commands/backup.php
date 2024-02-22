@@ -3,6 +3,7 @@
 declare(strict_types = 1);
 
 use Kirby\CLI\CLI;
+use Kirby\Filesystem\Dir;
 use Kirby\Toolkit\Str;
 
 return [
@@ -27,7 +28,7 @@ return [
 
 		$kirbyPath          = $cli->kirby()->root('index');
 		$backupPath         = $kirbyPath . '/backup';
-		$backupFile         = $backupPath . '/' . date('Y-m-d-His') . '.zip';
+		$backupFile         = $backupPath . '/' . $root . '-' . date('Y-m-d-His') . '.zip';
 		$relativeBackupFile = Str::after($backupFile, $kirbyPath);
 		$relativeTargetPath = trim(Str::after($targetPath, $kirbyPath), '/');
 
@@ -35,13 +36,19 @@ return [
 		$commands = [
 			// navigates to the target directory to ignore parent folders in zip file
 			'cd ' . escapeshellarg($targetPath) . ';',
-			// set backup file path
+			// sets backup file path
 			'zip -r ' . escapeshellarg($backupFile),
-			// set target backup directory
-			escapeshellarg(empty($relativeTargetPath) === true ? '*' : ('./' . $relativeTargetPath . '/*')),
-			// exclude backup directory
-			'-x ' . escapeshellarg('backup/*')
+			// sets target backup directory
+			escapeshellarg($root === 'index' ? '*' : ('./' . $relativeTargetPath . '/*'))
 		];
+
+		// exclude backup directory from the root for only index root
+		if ($root === 'index') {
+			$commands[] = '-x ' . escapeshellarg('backup/*');
+		}
+
+		// create backup directory before the process
+		Dir::make($backupPath);
 
 		exec(implode(' ', $commands));
 

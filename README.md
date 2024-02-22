@@ -40,6 +40,7 @@ This should print the Kirby CLI version and a list of available commands
 - kirby clean:content
 - kirby clear:cache
 - kirby clear:lock
+- kirby clear:logins
 - kirby clear:media
 - kirby clear:sessions
 - kirby download
@@ -283,8 +284,3 @@ return [
 
 © 2009 Bastian Allgeier
 [getkirby.com](https://getkirby.com) · [License agreement](./LICENSE.md)
-
-
-
-
-

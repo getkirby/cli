@@ -10,6 +10,6 @@ return [
 	'command' => static function (CLI $cli): void {
 		F::remove($cli->kirby()->root('accounts') . '/.logins');
 
-		$cli->success('The `.logins` file has been deleted');
+		$cli->success('The .logins file has been deleted');
 	}
 ];

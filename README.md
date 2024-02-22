@@ -37,6 +37,7 @@ This should print the Kirby CLI version and a list of available commands
 ## Available core commands
 
 ```
+- kirby backup
 - kirby clean:content
 - kirby clear:cache
 - kirby clear:lock

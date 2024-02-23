@@ -501,22 +501,22 @@ class CLI
 			]
 		]);
 
-		// add help argument
-		$this->climate->arguments->add([
-			'help' => [
-				'description' => 'Prints a usage statement',
-				'prefix'      => 'h',
-				'longPrefix'  => 'help',
-				'noValue'     => true
-			]
-		]);
-
 		// add debug argument
 		$this->climate->arguments->add([
 			'debug' => [
 				'description' => 'Enables debug mode',
 				'prefix'      => 'd',
 				'longPrefix'  => 'debug',
+				'noValue'     => true
+			]
+		]);
+
+		// add help argument
+		$this->climate->arguments->add([
+			'help' => [
+				'description' => 'Prints a usage statement',
+				'prefix'      => 'h',
+				'longPrefix'  => 'help',
 				'noValue'     => true
 			]
 		]);

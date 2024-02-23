@@ -137,6 +137,8 @@ Once you no longer need a command, you can remove it with …
 kirby remove:command hello
 ```
 
+If you have a local and a global command, you can choose which one to delete.
+
 ## Debugging
 
 Use the `-d` or `--debug` argument to run the command in debug mode:
@@ -144,8 +146,6 @@ Use the `-d` or `--debug` argument to run the command in debug mode:
 ```bash
 kirby make:command hello --debug
 ```
-
-If you have a local and a global command, you can choose which one to delete.
 
 ## Formatting Output
 

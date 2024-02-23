@@ -446,6 +446,38 @@ class CLI
 	}
 
 	/**
+	 * Removes a folder including all containing files and folders
+	 */
+	public function rmdir($dir): bool
+	{
+		$dir = realpath($dir);
+
+		if (is_dir($dir) === false) {
+			return true;
+		}
+
+		if (is_link($dir) === true) {
+			return unlink($dir);
+		}
+
+		foreach (scandir($dir) as $childName) {
+			if (in_array($childName, ['.', '..']) === true) {
+				continue;
+			}
+
+			$child = $dir . '/' . $childName;
+
+			if (is_dir($child) === true && is_link($child) === false) {
+				$this->rmdir($child);
+			} else {
+				unlink($child);
+			}
+		}
+
+		return rmdir($dir);
+	}
+
+	/**
 	 * Returns a root either from the custom roots
 	 * array or from the Kirby instance
 	 */

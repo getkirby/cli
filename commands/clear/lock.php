@@ -3,7 +3,6 @@
 declare(strict_types = 1);
 
 use Kirby\CLI\CLI;
-use Kirby\Filesystem\F;
 
 return [
 	'description' => 'Deletes the content `.lock` files',
@@ -15,7 +14,7 @@ return [
 
 		foreach ($iterator as $file) {
 			if ($file->getFilename() === '.lock') {
-				F::remove($file->getPathName());
+				unlink($file->getPathName());
 				$counter++;
 			}
 		}

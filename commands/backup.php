@@ -32,6 +32,10 @@ return [
 		$backupPath = $kirbyPath . '/backup';
 		$backupFile = $backupPath . '/' . $root . '-' . date('Y-m-d-His') . '.zip';
 
+		if (is_file($backupFile) === true) {
+			throw new Exception('The backup file exists');
+		}
+
 		// create backup directory before the process
 		mkdir($backupPath);
 

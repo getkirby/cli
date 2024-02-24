@@ -57,6 +57,7 @@ This should print the Kirby CLI version and a list of available commands
 - kirby make:plugin
 - kirby make:snippet
 - kirby make:template
+- kirby make:user
 - kirby register
 - kirby remove:command
 - kirby roots

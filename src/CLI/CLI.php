@@ -102,7 +102,7 @@ class CLI
 		try {
 			$cli->run(...$args);
 		} catch (Throwable $e) {
-			$cli->error((string)$e);
+			$cli->handleException($e);
 		}
 	}
 
@@ -310,6 +310,19 @@ class CLI
 		}
 
 		return $folder;
+	}
+
+	/**
+	 * Handles exception with throwing exception or out error message
+	 */
+	protected function handleException(Throwable $e): never
+	{
+		if ($this->isDefined('debug') === true) {
+			throw $e;
+		}
+
+		$this->error($e->getMessage());
+		exit;
 	}
 
 	/**
@@ -531,12 +544,7 @@ class CLI
 		try {
 			$this->climate->arguments->parse($argv);
 		} catch (Throwable $e) {
-			if ($this->climate->arguments->defined('debug') === true) {
-				throw $e;
-			}
-
-			$this->error($e->getMessage());
-			exit;
+			$this->handleException($e);
 		}
 
 		// enable quiet mode
@@ -553,12 +561,7 @@ class CLI
 		try {
 			$command['command']($this);
 		} catch (Throwable $e) {
-			if ($this->climate->arguments->defined('debug') === true) {
-				throw $e;
-			}
-
-			$this->error($e->getMessage());
-			exit;
+			$this->handleException($e);
 		}
 	}
 

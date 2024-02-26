@@ -242,18 +242,7 @@ class CLI
 		// we need to implement Dir::remove and F::remove here again, because
 		// the Kirby installation might not be available when we need this
 		if (is_dir($item) === true) {
-			$iterator = new RecursiveDirectoryIterator($item, RecursiveDirectoryIterator::SKIP_DOTS);
-			$children = new RecursiveIteratorIterator($iterator, RecursiveIteratorIterator::CHILD_FIRST);
-
-			foreach ($children as $child) {
-				if ($child->isDir()) {
-					rmdir($child->getRealPath());
-				} else {
-					unlink($child->getRealPath());
-				}
-			}
-
-			rmdir($item);
+			$this->rmdir($item);
 		} else {
 			unlink($item);
 		}
@@ -456,6 +445,38 @@ class CLI
 		}
 
 		return $value;
+	}
+
+	/**
+	 * Removes a folder including all containing files and folders
+	 */
+	public function rmdir($dir): bool
+	{
+		$dir = realpath($dir);
+
+		if (is_dir($dir) === false) {
+			return true;
+		}
+
+		if (is_link($dir) === true) {
+			return unlink($dir);
+		}
+
+		foreach (scandir($dir) as $childName) {
+			if (in_array($childName, ['.', '..']) === true) {
+				continue;
+			}
+
+			$child = $dir . '/' . $childName;
+
+			if (is_dir($child) === true && is_link($child) === false) {
+				$this->rmdir($child);
+			} else {
+				unlink($child);
+			}
+		}
+
+		return rmdir($dir);
 	}
 
 	/**

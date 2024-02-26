@@ -102,7 +102,7 @@ class CLI
 		try {
 			$cli->run(...$args);
 		} catch (Throwable $e) {
-			$cli->error((string)$e);
+			$cli->handleException($e);
 		}
 	}
 
@@ -313,6 +313,19 @@ class CLI
 	}
 
 	/**
+	 * Handles exception with throwing exception or out error message
+	 */
+	protected function handleException(Throwable $e): never
+	{
+		if ($this->isDefined('debug') === true) {
+			throw $e;
+		}
+
+		$this->error($e->getMessage());
+		exit;
+	}
+
+	/**
 	 * Gets path for global commands (respecting 'XDG_CONFIG_HOME' if set)
 	 *
 	 * For more information on the 'XDG Base Directory Speicfications',
@@ -501,7 +514,17 @@ class CLI
 			]
 		]);
 
-		// add help as last argument
+		// add debug argument
+		$this->climate->arguments->add([
+			'debug' => [
+				'description' => 'Enables debug mode',
+				'prefix'      => 'd',
+				'longPrefix'  => 'debug',
+				'noValue'     => true
+			]
+		]);
+
+		// add help argument
 		$this->climate->arguments->add([
 			'help' => [
 				'description' => 'Prints a usage statement',
@@ -521,8 +544,7 @@ class CLI
 		try {
 			$this->climate->arguments->parse($argv);
 		} catch (Throwable $e) {
-			$this->error($e->getMessage());
-			exit;
+			$this->handleException($e);
 		}
 
 		// enable quiet mode
@@ -536,7 +558,11 @@ class CLI
 			return;
 		}
 
-		$command['command']($this);
+		try {
+			$command['command']($this);
+		} catch (Throwable $e) {
+			$this->handleException($e);
+		}
 	}
 
 	/**

@@ -32,11 +32,10 @@ return [
 
 		// confirms the process when major version upgrade available
 		if ((int)$version > (int)$kirby->version()) {
-			$majorConfirm = $cli->prompt('Major version upgrade detected. Are you sure you want to proceed? Please type <Yes> or <Y> and press <Enter> to proceed:');
-
-			if (in_array(strtolower($majorConfirm), ['yes', 'y']) === false) {
-				throw new Exception('Major version upgrade has been canceled');
-			}
+			$cli->confirmToContinue(
+				'Major version upgrade detected. Are you sure you want to proceed?',
+				fn () => throw new Exception('Major version upgrade has been canceled')
+			);
 		}
 
 		if (is_dir($cli->dir() . '/' . $folder) === true) {

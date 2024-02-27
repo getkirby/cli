@@ -34,7 +34,7 @@ return [
 
 		// checks current kirby version and prevents downgrade
 		if (version_compare($kirby->version(), $version, '>') === true) {
-			throw new Exception('Current Kirby version is higher than the version you are trying to upgrade to');
+			throw new Exception('Your current Kirby version is higher than the version you are trying to upgrade to');
 		}
 
 		// confirms the process when major version upgrade available

@@ -59,21 +59,17 @@ return [
 		$ignore = ['uuid', 'title', 'slug', 'template', 'sort', 'focus'];
 
 		// call the script for all languages if multilang
-		try {
-			if ($kirby->multilang() === true) {
-				$languages = $kirby->languages();
+		if ($kirby->multilang() === true) {
+			$languages = $kirby->languages();
 
-				foreach ($languages as $language) {
-					$cleanContent($collection, $ignore, $language->code());
-				}
-
-			} else {
-				$cleanContent($collection, $ignore);
+			foreach ($languages as $language) {
+				$cleanContent($collection, $ignore, $language->code());
 			}
 
-			$cli->success('The content files have been cleaned');
-		} catch (Exception $e) {
-			$cli->error($e->getMessage());
+		} else {
+			$cleanContent($collection, $ignore);
 		}
+
+		$cli->success('The content files have been cleaned');
 	}
 ];

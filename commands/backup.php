@@ -3,12 +3,13 @@
 declare(strict_types = 1);
 
 use Kirby\CLI\CLI;
+use Kirby\Filesystem\Dir;
 
 return [
 	'description' => 'Creates backup of application files',
 	'args' => [
 		'root' => [
-			'description' => 'Selects the kirby root to be backup'
+			'description' => 'Selects the kirby root, which should be backuped'
 		]
 	],
 	'command' => static function (CLI $cli): void {
@@ -16,16 +17,21 @@ return [
 			throw new Exception('ZipArchive library could not be found');
 		}
 
-		$root       = $cli->argOrPrompt(
+		$root = $cli->argOrPrompt(
 			'root',
-			'Which root should be backup? (press <Enter> to backup the entire kirby application)',
+			'Which root should be backuped? (press <Enter> to backup your entire site)',
 			false
 		);
-		$root 	    = empty($root) === true ? 'index' : $root;
-		$rootPath   = $cli->kirby()->root($root);
+
+		$root     = empty($root) === true ? 'index' : $root;
+		$rootPath = $cli->kirby()->root($root);
 
 		if ($rootPath === null) {
 			throw new Exception('Invalid root entered: ' . $root);
+		}
+
+		if (is_dir($rootPath) === false) {
+			throw new Exception('The root does not exist: ' . $root);
 		}
 
 		$kirbyPath  = $cli->kirby()->root('index');
@@ -37,7 +43,7 @@ return [
 		}
 
 		// create backup directory before the process
-		mkdir($backupPath);
+		Dir::make($backupPath);
 
 		$zip = new ZipArchive();
 		if ($zip->open($backupFile, ZipArchive::CREATE) !== true) {

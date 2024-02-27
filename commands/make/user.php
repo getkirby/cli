@@ -27,10 +27,10 @@ return [
 	'command' => static function (CLI $cli): void {
 		$kirby    = $cli->kirby();
 		$email    = $cli->argOrPrompt('email', 'Enter an email:');
+		$password = $cli->argOrPrompt('password', 'Enter a password (Leave empty for passwordless login methods):', false);
 		$role     = $cli->radio('Select a user role:', $kirby->roles()->pluck('id'))->prompt();
 		$name     = $cli->argOrPrompt('name', 'Enter a name (optional):', false);
 		$language = $cli->argOrPrompt('language', 'Enter a language code (Leave empty to use default EN):', false);
-		$password = $cli->argOrPrompt('password', 'Enter a password (Leave empty for the passwordless login):', false);
 
 		$data = [
 			'email'    => $email,

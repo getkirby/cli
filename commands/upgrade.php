@@ -3,6 +3,7 @@
 declare(strict_types = 1);
 
 use Kirby\CLI\CLI;
+use Kirby\Filesystem\Dir;
 
 return [
 	'description' => 'Upgrades the Kirby core',
@@ -25,6 +26,12 @@ return [
 			$version = $release->latest;
 		}
 
+		// checks if the current kirby version is the same as the new one
+		if (version_compare($version, $kirby->version(), '==') === true) {
+			$cli->success('Your Kirby installation is already up to date');
+			exit;
+		}
+
 		// checks current kirby version whether same or higher
 		if (version_compare($version, $kirby->version(), '<=') === true) {
 			throw new Exception('Current Kirby version is the same or higher than the version you are trying to upgrade to');
@@ -32,31 +39,28 @@ return [
 
 		// confirms the process when major version upgrade available
 		if ((int)$version > (int)$kirby->version()) {
-			$cli->confirmToContinue(
-				'Major version upgrade detected. Are you sure you want to proceed?',
-				fn () => throw new Exception('Major version upgrade has been canceled')
-			);
-		}
+			$confirm = $cli->confirm('Major version upgrade detected. Are you sure you want to proceed?');
 
-		if (is_dir($cli->dir() . '/' . $folder) === true) {
-			throw new Exception('The ' . $folder . ' directory exists');
+			if ($confirm->confirmed() === false) {
+				throw new Exception('Major version upgrade has been canceled');
+			}
 		}
 
 		$cli->out('Upgrading Kirby from ' . $kirby->version() . ' to ' . $version . ' …');
-		$cli->run('install:repo', 'getkirby/kirby', $folder, $version);
+		$cli->run('install:repo', 'getkirby/kirby', $folder, '--version=' . $version);
 
 		// move current kirby to temp directory as backup
-		rename($kirbyRoot, $kirbyRoot . '.old');
+		Dir::move($kirbyRoot, $kirbyRoot . '.old');
 
 		// move new kirby to current root
-		rename($cli->dir() . '/' . $folder, $kirbyRoot);
+		Dir::move($cli->dir() . '/' . $folder, $kirbyRoot);
 
 		// delete old kirby
-		$cli->rmdir($kirbyRoot . '.old');
+		Dir::remove($kirbyRoot . '.old');
 
 		// delete temp panel directory
-		$cli->rmdir($kirby->root('media') . '/panel');
+		Dir::remove($kirby->root('media') . '/panel');
 
-		$cli->success('The Kirby has been upgraded to ' . $version);
+		$cli->success('Kirby has been upgraded to ' . $version);
 	}
 ];

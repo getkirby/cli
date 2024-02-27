@@ -25,8 +25,18 @@ return [
 			$version = $release->latest;
 		}
 
+		// checks current kirby version whether same or higher
 		if (version_compare($version, $kirby->version(), '<=') === true) {
 			throw new Exception('Current Kirby version is the same or higher than the version you are trying to upgrade to');
+		}
+
+		// confirms the process when major version upgrade available
+		if ((int)$version > (int)$kirby->version()) {
+			$majorConfirm = $cli->prompt('Major version upgrade detected. Are you sure you want to proceed? Please type <Yes> or <Y> and press <Enter> to proceed:');
+
+			if (in_array(strtolower($majorConfirm), ['yes', 'y']) === false) {
+				throw new Exception('Major version upgrade has been canceled');
+			}
 		}
 
 		if (is_dir($cli->dir() . '/' . $folder) === true) {

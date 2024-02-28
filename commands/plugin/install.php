@@ -18,14 +18,21 @@ return [
 		]
 	],
 	'command' => static function (CLI $cli): void {
-		$repo    = $cli->arg('repo');
-		$version = $cli->arg('version');
-		$archive = 'https://github.com/' . $repo . '/archive';
+		$repo        = $cli->arg('repo');
+		$version     = $cli->arg('version');
+		$archiveUrl  = 'https://github.com/' . $repo . '/archive';
+		$composerUrl = 'https://github.com/' . $repo . '/raw/HEAD/composer.json';
+
+		// make sure only `kirby-plugin` installable
+		$composer = json_decode(file_get_contents($composerUrl));
+		if (($composer?->type ?? null) !== 'kirby-plugin') {
+			throw new Exception('The GitHub repository should be a kirby plugin');
+		}
 
 		if ($version === 'latest') {
-			$url = $archive . '/main.zip';
+			$url = $archiveUrl . '/main.zip';
 		} else {
-			$url = $archive . '/refs/tags/' . $cli->arg('version') . '.zip';
+			$url = $archiveUrl . '/refs/tags/' . $cli->arg('version') . '.zip';
 		}
 
 		list($vendor, $plugin) = explode('/', $repo);

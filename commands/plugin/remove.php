@@ -20,7 +20,7 @@ return [
 			Dir::remove($plugin->root());
 			$cli->success('The ' . $repo . ' plugin has been removed');
 		} else {
-			$cli->error('The ' . $repo . ' plugin could not found');
+			$cli->error('The ' . $repo . ' plugin could not be found');
 		}
 	}
 ];

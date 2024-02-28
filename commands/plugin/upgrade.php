@@ -6,7 +6,7 @@ use Kirby\CLI\CLI;
 use Kirby\Filesystem\Dir;
 
 return [
-	'description' => 'Upgrades a kirby plugin',
+	'description' => 'Upgrades a Kirby plugin',
 	'args' => [
 		'repo' => [
 			'description' => 'The Kirby plugin registry name (i.e. getkirby/kql)',

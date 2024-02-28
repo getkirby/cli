@@ -6,7 +6,7 @@ use Kirby\CLI\CLI;
 use Kirby\Filesystem\F;
 
 return [
-	'description' => 'Installs a kirby plugin repository from Github',
+	'description' => 'Installs a Kirby plugin repository from Github',
 	'args' => [
 		'repo' => [
 			'description' => 'The Github repo path (i.e. getkirby/kql)',
@@ -26,7 +26,7 @@ return [
 		// make sure only `kirby-plugin` installable
 		$composer = json_decode(file_get_contents($composerUrl));
 		if (($composer?->type ?? null) !== 'kirby-plugin') {
-			throw new Exception('The GitHub repository should be a kirby plugin');
+			throw new Exception('The GitHub repository should be a Kirby plugin');
 		}
 
 		if ($version === 'latest') {

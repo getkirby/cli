@@ -52,28 +52,27 @@ return [
 		// Authenticate as almighty
 		$kirby->impersonate('kirby');
 
-		// Define your collection
-		$collection = $kirby->models();
-
 		// set the fields to be ignored
 		$ignore = ['uuid', 'title', 'slug', 'template', 'sort', 'focus'];
 
 		// call the script for all languages if multilang
-		try {
-			if ($kirby->multilang() === true) {
-				$languages = $kirby->languages();
+		if ($kirby->multilang() === true) {
+			$languages = $kirby->languages();
 
-				foreach ($languages as $language) {
-					$cleanContent($collection, $ignore, $language->code());
-				}
+			foreach ($languages as $language) {
+				// should call kirby models for each loop
+				// since generators cannot be cloned
+				// otherwise run into an exception
+				$collection = $kirby->models();
 
-			} else {
-				$cleanContent($collection, $ignore);
+				$cleanContent($collection, $ignore, $language->code());
 			}
 
-			$cli->success('The content files have been cleaned');
-		} catch (Exception $e) {
-			$cli->error($e->getMessage());
+		} else {
+			$collection = $kirby->models();
+			$cleanContent($collection, $ignore);
 		}
+
+		$cli->success('The content files have been cleaned');
 	}
 ];

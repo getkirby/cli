@@ -6,7 +6,7 @@ use Kirby\CLI\CLI;
 use Kirby\Filesystem\F;
 
 return [
-	'description' => 'Installs a kirby plugin repository from the Github',
+	'description' => 'Installs a kirby plugin repository from Github',
 	'args' => [
 		'repo' => [
 			'description' => 'The Github repo path (i.e. getkirby/kql)',
@@ -47,6 +47,6 @@ return [
 		// remove the zip
 		F::unlink($zip);
 
-		$cli->success('The ' . $repo . ' plugin has been installed ' . $version . ' version');
+		$cli->success('The ' . $repo . ' plugin has been installed');
 	}
 ];

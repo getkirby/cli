@@ -102,7 +102,7 @@ class CLI
 		try {
 			$cli->run(...$args);
 		} catch (Throwable $e) {
-			$cli->error((string)$e);
+			$cli->handleException($e);
 		}
 	}
 
@@ -242,18 +242,7 @@ class CLI
 		// we need to implement Dir::remove and F::remove here again, because
 		// the Kirby installation might not be available when we need this
 		if (is_dir($item) === true) {
-			$iterator = new RecursiveDirectoryIterator($item, RecursiveDirectoryIterator::SKIP_DOTS);
-			$children = new RecursiveIteratorIterator($iterator, RecursiveIteratorIterator::CHILD_FIRST);
-
-			foreach ($children as $child) {
-				if ($child->isDir()) {
-					rmdir($child->getRealPath());
-				} else {
-					unlink($child->getRealPath());
-				}
-			}
-
-			rmdir($item);
+			$this->rmdir($item);
 		} else {
 			unlink($item);
 		}
@@ -310,6 +299,19 @@ class CLI
 		}
 
 		return $folder;
+	}
+
+	/**
+	 * Handles exception with throwing exception or out error message
+	 */
+	protected function handleException(Throwable $e): never
+	{
+		if ($this->isDefined('debug') === true) {
+			throw $e;
+		}
+
+		$this->error($e->getMessage());
+		exit;
 	}
 
 	/**
@@ -446,6 +448,38 @@ class CLI
 	}
 
 	/**
+	 * Removes a folder including all containing files and folders
+	 */
+	public function rmdir($dir): bool
+	{
+		$dir = realpath($dir);
+
+		if (is_dir($dir) === false) {
+			return true;
+		}
+
+		if (is_link($dir) === true) {
+			return unlink($dir);
+		}
+
+		foreach (scandir($dir) as $childName) {
+			if (in_array($childName, ['.', '..']) === true) {
+				continue;
+			}
+
+			$child = $dir . '/' . $childName;
+
+			if (is_dir($child) === true && is_link($child) === false) {
+				$this->rmdir($child);
+			} else {
+				unlink($child);
+			}
+		}
+
+		return rmdir($dir);
+	}
+
+	/**
 	 * Returns a root either from the custom roots
 	 * array or from the Kirby instance
 	 */
@@ -501,7 +535,17 @@ class CLI
 			]
 		]);
 
-		// add help as last argument
+		// add debug argument
+		$this->climate->arguments->add([
+			'debug' => [
+				'description' => 'Enables debug mode',
+				'prefix'      => 'd',
+				'longPrefix'  => 'debug',
+				'noValue'     => true
+			]
+		]);
+
+		// add help argument
 		$this->climate->arguments->add([
 			'help' => [
 				'description' => 'Prints a usage statement',
@@ -521,8 +565,7 @@ class CLI
 		try {
 			$this->climate->arguments->parse($argv);
 		} catch (Throwable $e) {
-			$this->error($e->getMessage());
-			exit;
+			$this->handleException($e);
 		}
 
 		// enable quiet mode
@@ -536,7 +579,11 @@ class CLI
 			return;
 		}
 
-		$command['command']($this);
+		try {
+			$command['command']($this);
+		} catch (Throwable $e) {
+			$this->handleException($e);
+		}
 	}
 
 	/**

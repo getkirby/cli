@@ -37,8 +37,11 @@ This should print the Kirby CLI version and a list of available commands
 ## Available core commands
 
 ```
+- kirby backup
 - kirby clean:content
 - kirby clear:cache
+- kirby clear:lock
+- kirby clear:logins
 - kirby clear:media
 - kirby clear:sessions
 - kirby download
@@ -51,14 +54,20 @@ This should print the Kirby CLI version and a list of available commands
 - kirby make:command
 - kirby make:config
 - kirby make:controller
+- kirby make:language
 - kirby make:model
 - kirby make:plugin
 - kirby make:snippet
 - kirby make:template
+- kirby make:user
+- kirby plugin:install
+- kirby plugin:remove
+- kirby plugin:upgrade
 - kirby register
 - kirby remove:command
 - kirby roots
 - kirby unzip
+- kirby upgrade
 - kirby uuid:generate
 - kirby uuid:populate
 - kirby uuid:remove
@@ -136,6 +145,14 @@ kirby remove:command hello
 ```
 
 If you have a local and a global command, you can choose which one to delete.
+
+## Debugging
+
+Use the `-d` or `--debug` argument to run the command in debug mode:
+
+```bash
+kirby make:command hello --debug
+```
 
 ## Formatting Output
 
@@ -282,8 +299,3 @@ return [
 
 © 2009 Bastian Allgeier
 [getkirby.com](https://getkirby.com) · [License agreement](./LICENSE.md)
-
-
-
-
-

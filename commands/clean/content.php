@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 use Kirby\CLI\CLI;
 
-function clean(
+$cleanContent = function (
 	Generator $collection,
 	array|null $ignore = null,
 	string|null $lang = null
@@ -36,18 +36,14 @@ function clean(
 			$data = array_map(fn ($value) => null, array_flip($fieldsToBeDeleted));
 
 			// try to update the page with the data
-			try {
-				$item->update($data, $lang);
-			} catch (Exception $e) {
-				throw $e->getMessage();
-			}
+			$item->update($data, $lang);
 		}
 	}
-}
+};
 
 return [
 	'description' => 'Deletes all fields from page, file or user content files that are not defined in the blueprint, no matter if they contain content or not.',
-	'command' => static function (CLI $cli): void {
+	'command' => static function (CLI $cli) use ($cleanContent): void {
 
 		$cli->confirmToContinue('This will delete all fields from content files that are not defined in blueprints, no matter if they contain content or not. Are you sure?');
 
@@ -55,9 +51,6 @@ return [
 
 		// Authenticate as almighty
 		$kirby->impersonate('kirby');
-
-		// Define your collection
-		$collection = $kirby->models();
 
 		// set the fields to be ignored
 		$ignore = ['uuid', 'title', 'slug', 'template', 'sort', 'focus'];
@@ -67,11 +60,17 @@ return [
 			$languages = $kirby->languages();
 
 			foreach ($languages as $language) {
-				clean($collection, $ignore, $language->code());
+				// should call kirby models for each loop
+				// since generators cannot be cloned
+				// otherwise run into an exception
+				$collection = $kirby->models();
+
+				$cleanContent($collection, $ignore, $language->code());
 			}
 
 		} else {
-			clean($collection, $ignore);
+			$collection = $kirby->models();
+			$cleanContent($collection, $ignore);
 		}
 
 		$cli->success('The content files have been cleaned');

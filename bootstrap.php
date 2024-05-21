@@ -12,6 +12,11 @@ function bootstrap(): string|null
 		// avoid any output in the CLI
 		$_ENV['KIRBY_RENDER'] = false;
 
+		if (empty($_ENV['KIRBY_HOST']) === false) {
+			$_SERVER['SERVER_NAME'] = $_ENV['KIRBY_HOST'];
+			$_SERVER['HTTP_HOST']   = $_ENV['KIRBY_HOST'];
+		}
+
 		ob_start();
 		require $index;
 		ob_end_clean();

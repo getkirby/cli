@@ -17,6 +17,6 @@ return [
 
 		Uuids::populate();
 
-		$cli->success('UUID cache has been popluated');
+		$cli->success('UUID cache has been populated');
 	}
 ];

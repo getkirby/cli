@@ -110,6 +110,14 @@ kirby make:command hello --global
 
 The command file will then be place in `~/.kirby/commands/hello.php` and is automatically available everywhere.
 
+## Command environment
+
+To load a custom environment config for a particular host, you can set an env variable
+
+```
+env KIRBY_HOST=production.com kirby mycommand
+```
+
 ## Command plugins
 
 Your Kirby plugins can define their own set of commands: https://getkirby.com/docs/reference/plugins/extensions/commands

@@ -42,6 +42,8 @@ return [
 					$messages[] = I18n::translate('system.issues.' . $key);
 				}
 			}
+		} else {
+			$messages[] = 'Could not check for exposed folders as the site URL is not absolute';
 		}
 
 		if (empty($messages) === false) {
@@ -49,7 +51,7 @@ return [
 				$cli->error('> ' . $message);
 			}
 		} else {
-			$cli->success('No security warnings were detected');
+			$cli->success('Basic security checks were successful, please review https://getkirby.com/docs/guide/security for additional best practices.');
 		}
 	}
 ];

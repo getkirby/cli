@@ -12,9 +12,9 @@ function bootstrap(): string|null
 		// avoid any output in the CLI
 		$_ENV['KIRBY_RENDER'] = false;
 
-		if (empty($_ENV['KIRBY_HOST']) === false) {
-			$_SERVER['SERVER_NAME'] = $_ENV['KIRBY_HOST'];
-			$_SERVER['HTTP_HOST']   = $_ENV['KIRBY_HOST'];
+		if ($host = getenv('KIRBY_HOST')) {
+			$_SERVER['SERVER_NAME'] = $host;
+			$_SERVER['HTTP_HOST']   = $host;
 		}
 
 		ob_start();

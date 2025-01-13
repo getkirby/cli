@@ -66,6 +66,7 @@ This should print the Kirby CLI version and a list of available commands
 - kirby register
 - kirby remove:command
 - kirby roots
+- kirby security
 - kirby unzip
 - kirby upgrade
 - kirby uuid:generate
@@ -300,7 +301,8 @@ return [
 - **[Forum](https://forum.getkirby.com)** – Whenever you get stuck, don't hesitate to reach out for questions and support.
 - **[Discord](https://chat.getkirby.com)** – Hang out and meet the community.
 - **[YouTube](https://youtube.com/kirbyCasts)** - Watch the latest video tutorials visually with Bastian.
-- **[Mastodon](https://mastodon.social/@getkirby)** – Spread the word.
+- **[Mastodon](https://mastodon.social/@getkirby)** – Follow us in the Fediverse.
+- **[Bluesky](https://bsky.app/profile/getkirby.com)** – Follow us on Bluesky.
 - **[Instagram](https://www.instagram.com/getkirby/)** – Share your creations: #madewithkirby.
 
 ---

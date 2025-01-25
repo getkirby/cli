@@ -303,7 +303,6 @@ return [
 - **[YouTube](https://youtube.com/kirbyCasts)** - Watch the latest video tutorials visually with Bastian.
 - **[Mastodon](https://mastodon.social/@getkirby)** – Follow us in the Fediverse.
 - **[Bluesky](https://bsky.app/profile/getkirby.com)** – Follow us on Bluesky.
-- **[Instagram](https://www.instagram.com/getkirby/)** – Share your creations: #madewithkirby.
 
 ---
 

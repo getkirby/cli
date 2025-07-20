@@ -16,25 +16,25 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # pin@v3
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # pin@v4
 
       - name: Setup PHP cache environment
         id: ext-cache
-        uses: shivammathur/cache-extensions@d622719c5f9eb1f119bee963028d0c0b984525c5 # pin@v1
+        uses: shivammathur/cache-extensions@270463ea3e30925f5661b16e508feab532dbf309 # pin@v1
         with:
           php-version: ${{ matrix.php }}
           extensions: ${{ env.extensions }}
           key: php-v1
 
       - name: Cache PHP extensions
-        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # pin@v3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # pin@v4
         with:
           path: ${{ steps.ext-cache.outputs.dir }}
           key: ${{ steps.ext-cache.outputs.key }}
           restore-keys: ${{ steps.ext-cache.outputs.key }}
 
       - name: Setup PHP environment
-        uses: shivammathur/setup-php@e6f75134d35752277f093989e72e140eaa222f35 # pin@v2
+        uses: shivammathur/setup-php@0f7f1d08e3e32076e51cae65eb0b0c871405b16e # pin@v2
         with:
           php-version: ${{ matrix.php }}
           extensions: ${{ env.extensions }}
@@ -52,7 +52,7 @@ jobs:
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache dependencies
-        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # pin@v3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # pin@v4
         with:
           path: ${{ steps.composerCache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
@@ -63,7 +63,7 @@ jobs:
 
       - name: Cache analysis data
         id: finishPrepare
-        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # pin@v3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # pin@v4
         with:
           path: ~/.cache/psalm
           key: backend-analysis-${{ matrix.php }}-v2
@@ -95,18 +95,18 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # pin@v3
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # pin@v4
 
       - name: Setup PHP cache environment
         id: ext-cache
-        uses: shivammathur/cache-extensions@d622719c5f9eb1f119bee963028d0c0b984525c5 # pin@v1
+        uses: shivammathur/cache-extensions@270463ea3e30925f5661b16e508feab532dbf309 # pin@v1
         with:
           php-version: ${{ env.php }}
           extensions: ${{ env.extensions }}
           key: php-v1
 
       - name: Cache PHP extensions
-        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # pin@v3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # pin@v4
         with:
           path: ${{ steps.ext-cache.outputs.dir }}
           key: ${{ steps.ext-cache.outputs.key }}
@@ -114,7 +114,7 @@ jobs:
 
       - name: Setup PHP environment
         id: finishPrepare
-        uses: shivammathur/setup-php@e6f75134d35752277f093989e72e140eaa222f35 # pin@v2
+        uses: shivammathur/setup-php@0f7f1d08e3e32076e51cae65eb0b0c871405b16e # pin@v2
         with:
           php-version: ${{ env.php }}
           extensions: ${{ env.extensions }}
@@ -139,7 +139,7 @@ jobs:
       - name: Cache dependencies
         id: composerCache2
         if: always() && steps.composerCache1.outcome == 'success'
-        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # pin@v3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # pin@v4
         with:
           path: ${{ steps.composerCache1.outputs.dir }}
           key: ${{ runner.os }}-composer-locked-${{ hashFiles('**/composer.lock') }}
@@ -170,17 +170,17 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # pin@v3
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # pin@v4
 
       - name: Setup PHP environment
-        uses: shivammathur/setup-php@e6f75134d35752277f093989e72e140eaa222f35 # pin@v2
+        uses: shivammathur/setup-php@0f7f1d08e3e32076e51cae65eb0b0c871405b16e # pin@v2
         with:
           coverage: none
           tools: php-cs-fixer:3.49.0
 
       - name: Cache analysis data
         id: finishPrepare
-        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # pin@v3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # pin@v4
         with:
           path: ~/.php-cs-fixer
           key: coding-style
@@ -196,7 +196,7 @@ jobs:
       - name: Create code suggestions from the coding style changes (on PR only)
         if: >
           always() && steps.finishPrepare.outcome == 'success' && github.event_name == 'pull_request'
-        uses: reviewdog/action-suggester@94877e550e6b522dc1d21231974b645ff2f084ce # pin@v1
+        uses: reviewdog/action-suggester@4747dbc9f9e37adba0943e681cc20db466642158 # pin@v1
         with:
           tool_name: PHP-CS-Fixer
           fail_on_error: "true"

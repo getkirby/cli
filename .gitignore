@@ -5,6 +5,13 @@
 /node_modules
 /vendor
 
+# Editors
+# (sensitive workspace files)
+# ---------------------------
+*.sublime-workspace
+/.vscode
+/.idea
+
 # cs fixer
 .php-cs-fixer.cache
 

@@ -21,6 +21,15 @@ return [
 			'json'
 		];
 
+		$licenseFields = [
+			'activation',
+			'code',
+			'date',
+			'domain',
+			'email',
+			'order',
+		];
+
 		$format = $cli->arg('format');
 		$format = $format ? $format : 'table';
 
@@ -32,6 +41,8 @@ return [
 		$license = $kirby->system()->license();
 
 		$data = $license->content();
+		// Only include the fields we want to display
+		$data = array_intersect_key($data, array_flip($licenseFields));
 		$data['renewal'] = $license->renewal();
 
 		// Print License info as table
@@ -42,6 +53,7 @@ return [
 				$tableData[] = ['Key' => $key, 'Value' => $value ?? '—'];
 			}
 
+			// Use the Climate library to create a table for better readability
 			$cli->climate()->table($tableData);
 		} else {
 			// Print License info as JSON

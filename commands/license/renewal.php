@@ -10,7 +10,7 @@ return [
 		'format' => [
 			'prefix'       => 'f',
 			'longPrefix'   => 'format',
-			'description'  => 'The format for the renewal date or "timestamp"',
+			'description'  => 'The format for the renewal date (any format supported by PHP\'s `date()` function) or "timestamp"',
 			'defaultValue' => 'Y-m-d'
 		]
 	],
@@ -24,7 +24,10 @@ return [
 			$format = null;
 		}
 
-		$renewal = $license->renewal($format);
+		$renewal = $license->renewal(
+			format: $format,
+			handler: 'date'
+		);
 
 		if ($renewal === null) {
 			$cli->error('No Kirby License is activated.');

@@ -43,7 +43,7 @@ return [
 		$data = $license->content();
 		// Only include the fields we want to display
 		$data = array_intersect_key($data, array_flip($licenseFields));
-		$data['renewal'] = $license->renewal(format: 'Y-m-d', handler: 'date');
+		$data['renewal'] = $license->renewal(format: 'Y-m-d H:i:s', handler: 'date');
 
 		// Print License info as table
 		if ($format === 'table') {

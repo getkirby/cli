@@ -49,6 +49,8 @@ This should print the Kirby CLI version and a list of available commands
 - kirby install
 - kirby install:kit
 - kirby install:repo
+- kirby license:info
+- kirby license:renewal
 - kirby make:blueprint
 - kirby make:collection
 - kirby make:command

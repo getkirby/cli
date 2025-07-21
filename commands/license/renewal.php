@@ -6,12 +6,25 @@ use Kirby\CLI\CLI;
 
 return [
 	'description' => 'Show the renewal date of the activated Kirby license.',
+	'args' => [
+		'format' => [
+			'prefix'       => 'f',
+			'longPrefix'   => 'format',
+			'description'  => 'The format for the renewal date or "timestamp"',
+			'defaultValue' => 'Y-m-d'
+		]
+	],
 	'command' => static function (CLI $cli): void {
 		$kirby = $cli->kirby();
 
 		$license = $kirby->system()->license();
+		$format  = $cli->arg('format');
 
-		$renewal = $license->renewal();
+		if (strtolower($format) === 'timestamp') {
+			$format = null;
+		}
+
+		$renewal = $license->renewal($format);
 
 		if ($renewal === null) {
 			$cli->error('No Kirby License is activated.');

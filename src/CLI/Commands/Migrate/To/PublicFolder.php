@@ -39,7 +39,7 @@ class PublicFolder
 	protected static function confirmMigration(CLI $cli): void
 	{
 		$cli->br();
-		$cli->confirmToContinue('💡 Migrating your folder setup can lead to a broken site. Make sure to backup your current installation. If you have modified your index.php you might need to adjust the new index.php after the migration. Do you want to continue?');
+		$cli->confirmToContinue("💡 Migrating your folder setup can lead to a broken site.\n\nMake sure to backup your current installation. If you have modified your index.php you might need to adjust the new index.php after the migration.\n\nDo you want to continue?");
 		$cli->br();
 	}
 
@@ -55,8 +55,8 @@ class PublicFolder
 	protected static function makePublicDir(CLI $cli, string $publicDir): void
 	{
 		if (is_dir($publicDir) === true) {
-			$cli->confirmToContinue('The public folder exists. Do you still want to continue?');
-			return;
+			$cli->confirmToContinue('⚠️  The public folder exists. Do you still want to continue?');
+			$cli->br();
 		}
 
 		Dir::make($publicDir);
@@ -67,6 +67,7 @@ class PublicFolder
 	protected static function movableDirs(string $dir): array
 	{
 		return [
+			$dir . '/.well-known',
 			$dir . '/assets',
 			$dir . '/media',
 		];
@@ -76,6 +77,11 @@ class PublicFolder
 	{
 		return [
 			$dir . '/.htaccess',
+			$dir . '/favicon.ico',
+			$dir . '/favicon.png',
+			$dir . '/favicon.svg',
+			$dir . '/favicon.gif',
+			$dir . '/robots.txt',
 		];
 	}
 
@@ -87,8 +93,21 @@ class PublicFolder
 			}
 
 			$dirname = basename($dir);
+			$target  = $destination . '/' . $dirname;
 
-			if (Dir::move($dir, $destination . '/' . $dirname) === true) {
+			// avoid overwriting directories that should not be overwritten
+			if (is_dir($target) === true) {
+				$input = $cli->confirm('⚠️  The directory ' . $dirname . ' exists. Do you want to overwrite it?');
+				$cli->br();
+
+				if ($input->confirmed() === false) {
+					continue;
+				}
+			}
+
+			Dir::remove($target);
+
+			if (Dir::move($dir, $target) === true) {
 				$cli->out('✅ The ' . $dirname . ' directory has been moved');
 			} else {
 				$cli->out('🚨 The ' . $dirname . ' directory could not be moved');
@@ -104,6 +123,19 @@ class PublicFolder
 			}
 
 			$filename = basename($file);
+			$target   = $destination . '/' . $filename;
+
+			// avoid overwriting directories that should not be overwritten
+			if (is_dir($target) === true) {
+				$input = $cli->confirm('⚠️  The file ' . $filename . ' exists. Do you want to overwrite it?');
+				$cli->br();
+
+				if ($input->confirmed() === false) {
+					continue;
+				}
+			}
+
+			F::remove($target);
 
 			if (F::move($file, $destination . '/' . $filename) === true) {
 				$cli->out('✅ The ' . $filename . ' file has been moved');

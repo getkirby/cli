@@ -6,6 +6,7 @@ namespace Kirby\CLI\Commands\Migrate\To;
 
 use Kirby\CLI\CLI;
 use Kirby\Filesystem\Dir;
+use Kirby\Filesystem\F;
 
 class RootFolder extends PublicFolder
 {
@@ -28,8 +29,11 @@ class RootFolder extends PublicFolder
 			return;
 		}
 
-		static::moveDirs($cli, $dir, static::movableDirs($publicDir));
-		static::moveFiles($cli, $dir, static::movableFiles($publicDir));
+		$dirs  = Dir::dirs($publicDir, null, true);
+		$files = Dir::files($publicDir, ['index.php'], true);
+
+		static::moveDirs($cli, $dir, $dirs);
+		static::moveFiles($cli, $dir, $files);
 
 		static::makeIndexPHP($cli, $dir);
 		static::removePublicDir($cli, $publicDir);
@@ -44,11 +48,19 @@ class RootFolder extends PublicFolder
 
 		$cli->make($dir . '/index.php', $template);
 
-		$cli->out('✅ The index.php has been created');
+		$cli->out('✅ The new index.php has been created');
+
+		// remove the old index.php
+		F::remove($dir . '/public/index.php');
 	}
 
 	protected static function removePublicDir(CLI $cli, string $publicDir): void
 	{
+		if (Dir::isEmpty($publicDir) === false) {
+			$cli->out('🚨 The public directory is not empty yet. Please make sure to move remaining files and directories yourself.');
+			return;
+		}
+
 		if (Dir::remove($publicDir) === true) {
 			$cli->out('✅ The public directory has been removed');
 		} else {

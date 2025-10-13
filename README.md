@@ -62,6 +62,8 @@ This should print the Kirby CLI version and a list of available commands
 - kirby make:snippet
 - kirby make:template
 - kirby make:user
+- kirby migrate:to:public-folder
+- kirby migrate:to:root-folder
 - kirby plugin:install
 - kirby plugin:remove
 - kirby plugin:upgrade

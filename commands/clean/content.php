@@ -9,7 +9,7 @@ $cleanContent = function (
 	array|null $ignore = null,
 	string|null $lang = null
 ): void {
-	foreach($collection as $item) {
+	foreach ($collection as $item) {
 		// get all fields in the content file
 		$contentFields = $item->content($lang)->fields();
 
@@ -20,20 +20,28 @@ $cleanContent = function (
 			}
 		}
 
-		// get the keys
-		$contentFields = array_keys($contentFields);
+		// get the keys and normalize to lowercase
+		$originalContentKeys = array_keys($contentFields);
+		$contentFieldKeys = array_map('mb_strtolower', $originalContentKeys);
 
-		// get all field keys from blueprint
+		// get all field keys from blueprint and normalize to lowercase
 		$blueprintFields = array_keys($item->blueprint()->fields());
+		$blueprintFieldKeys = array_map('mb_strtolower', $blueprintFields);
 
-		// get all field keys that are in $contentFields but not in $blueprintFields
-		$fieldsToBeDeleted = array_diff($contentFields, $blueprintFields);
+		// get all field keys that are in $contentFieldKeys but not in $blueprintFieldKeys
+		$fieldsToBeDeleted = array_diff($contentFieldKeys, $blueprintFieldKeys);
 
 		// update page only if there are any fields to be deleted
 		if (count($fieldsToBeDeleted) > 0) {
+			// create a mapping: lowercase => original field name
+			$lowercaseToOriginal = array_combine($contentFieldKeys, $originalContentKeys);
 
-			// flip keys and values and set new values to null
-			$data = array_map(fn ($value) => null, array_flip($fieldsToBeDeleted));
+			// build data array with original field names as keys and null as values
+			$data = [];
+			foreach ($fieldsToBeDeleted as $lowercaseField) {
+				$originalField = $lowercaseToOriginal[$lowercaseField];
+				$data[$originalField] = null;
+			}
 
 			// try to update the page with the data
 			$item->update($data, $lang);

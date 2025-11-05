@@ -25,18 +25,20 @@ class Duplicates
 			$duplicates[] = $uuid;
 
 			if ($cli->arg('fix') === true) {
-				$model->uuid()->clear();
-				$model->update([
-					'uuid' => Uuid::generate()
-				]);
-				$model->uuid()->populate(true);
+
+				// regenerate the UUID for the first model
+				static::regenerate($uuids[$uuid]);
+
+				// regenerate the UUID for this model
+				static::regenerate($model);
+
 				$cli->out('✅ The duplicate UUID ' . $uuid . ' for ' . $model->id() . ' has been regenerated');
 			} else {
 				$cli->error('The UUID ' . $uuid . ' for ' . $model->id() . ' exists (' . $uuids[$uuid] . ')');
 			}
 		}
 
-		$uuids[$uuid] = $model->id();
+		$uuids[$uuid] = $model;
 	}
 
 	public static function command(CLI $cli): void
@@ -87,5 +89,14 @@ class Duplicates
 			$cli->out(count($duplicates) . ' duplicates! You can fix them with kirby uuid:duplicates --fix');
 			exit(1);
 		}
+	}
+
+	protected static function regenerate(ModelWithContent $model): void
+	{
+		$model->uuid()->clear();
+		$model->update([
+			'uuid' => Uuid::generate()
+		]);
+		$model->uuid()->populate(true);
 	}
 }

@@ -30,7 +30,7 @@ class Duplicates
 					'uuid' => Uuid::generate()
 				]);
 				$model->uuid()->populate(true);
-				$cli->print('✅ The duplicate UUID ' . $uuid . ' for ' . $model->id() . ' has been regenerated');
+				$cli->out('✅ The duplicate UUID ' . $uuid . ' for ' . $model->id() . ' has been regenerated');
 			} else {
 				$cli->error('The UUID ' . $uuid . ' for ' . $model->id() . ' exists (' . $uuids[$uuid] . ')');
 			}
@@ -84,7 +84,8 @@ class Duplicates
 		} elseif ($fix === true) {
 			$cli->success(count($duplicates) . ' duplicates have been fixed');
 		} else {
-			$cli->print(count($duplicates) . ' duplicates! You can fix them with kirby uuid:duplicates --fix');
+			$cli->out(count($duplicates) . ' duplicates! You can fix them with kirby uuid:duplicates --fix');
+			exit(1);
 		}
 	}
 }

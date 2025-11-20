@@ -43,8 +43,14 @@ $cleanContent = function (
 				$data[$originalField] = null;
 			}
 
-			// try to update the page with the data
-			$item->update($data, $lang);
+			// get the latest version of the item
+			$version = $item->version('latest');
+
+			// check if the version exists for the given language
+			// and try to update the page with the data
+			if ($version->exists($lang ?? 'default') === true) {
+				$version->update($data, $lang ?? 'default');
+			}
 		}
 	}
 };

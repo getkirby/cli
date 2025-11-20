@@ -8,8 +8,8 @@ use Kirby\Cms\Languages;
 $cleanContent = function (
 	CLI $cli,
 	Generator $collection,
-	array|null $ignore = null,
-	string $lang = 'default',
+	string $lang,
+	array $ignore = [],
 	bool $dryrun = false,
 ): void {
 	foreach ($collection as $item) {
@@ -25,10 +25,10 @@ $cleanContent = function (
 
 		// get the keys and normalize to lowercase
 		$originalContentKeys = array_keys($contentFields);
-		$contentFieldKeys = array_map('mb_strtolower', $originalContentKeys);
+		$contentFieldKeys    = array_map('mb_strtolower', $originalContentKeys);
 
 		// get all field keys from blueprint and normalize to lowercase
-		$blueprintFields = array_keys($item->blueprint()->fields());
+		$blueprintFields    = array_keys($item->blueprint()->fields());
 		$blueprintFieldKeys = array_map('mb_strtolower', $blueprintFields);
 
 		// get all field keys that are in $contentFieldKeys but not in $blueprintFieldKeys
@@ -53,7 +53,7 @@ $cleanContent = function (
 		}
 
 		// don't update models that have changes
-		if ($item->version('changes')->exists() === true) {
+		if ($item->version('changes')->exists($lang) === true) {
 			$cli->error('The ' . $item::CLASS_ALIAS . ' (' . $item->id() . ') has changes and cannot be cleaned. Save the changes and try again.');
 		}
 
@@ -68,7 +68,7 @@ $cleanContent = function (
 		// check if the version exists for the given language
 		// and try to update the page with the data
 		if ($version->exists($lang) === true) {
-			$version->update($data);
+			$version->update($data, $lang);
 		}
 	}
 };
@@ -101,9 +101,13 @@ return [
 			// should call kirby models for each loop
 			// since generators cannot be cloned
 			// otherwise run into an exception
-			$collection = $kirby->models();
-
-			$cleanContent($cli, $collection, $ignore, $language->code(), $dryrun);
+			$cleanContent(
+				cli: $cli,
+				collection: $kirby->models(),
+				lang: $language->code(),
+				ignore: $ignore,
+				dryrun: $dryrun
+			);
 		}
 
 		$cli->success('The content files have been cleaned');

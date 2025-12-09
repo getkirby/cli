@@ -9,7 +9,7 @@ jobs:
     timeout-minutes: 5
     strategy:
       matrix:
-        php: ["8.1", "8.2", "8.3", "8.4"]
+        php: ["8.1", "8.2", "8.3", "8.4", "8.5"]
     env:
       extensions: mbstring, pcov
       ini: pcov.directory=., "pcov.exclude=\"~(vendor|tests)~\""
@@ -40,7 +40,7 @@ jobs:
           extensions: ${{ env.extensions }}
           ini-values: ${{ env.ini }}
           coverage: pcov
-          tools: phpunit:9.5.13, psalm:4.11.2
+          tools: phpunit:12.4.4
 
       - name: Setup problem matchers
         run: |
@@ -61,28 +61,9 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist
 
-      - name: Cache analysis data
-        id: finishPrepare
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # pin@v4
-        with:
-          path: ~/.cache/psalm
-          key: backend-analysis-${{ matrix.php }}-v2
-
       - name: Run tests
         if: always() && steps.finishPrepare.outcome == 'success'
-        run: phpunit --coverage-clover ${{ github.workspace }}/clover.xml
-      # - name: Statically analyze using Psalm
-      #   if: always() && steps.finishPrepare.outcome == 'success'
-      #   run: psalm --output-format=github --php-version=${{ matrix.php }}
-
-      # - name: Upload coverage results to Codecov
-      #   uses: codecov/codecov-action@66b3de25f6f91f65eb92c514d31d6b6f13d5ab18 # pin@v3
-      #   with:
-      #     file: ${{ github.workspace }}/clover.xml
-      #     flags: backend
-      #     env_vars: PHP
-      #   env:
-      #     PHP: ${{ matrix.php }}
+        run: phpunit
 
   analysis:
     name: Analysis
@@ -120,8 +101,8 @@ jobs:
           extensions: ${{ env.extensions }}
           coverage: none
           tools: |
-            composer:2.3.7, composer-normalize:2.28.0,
-            composer-unused:0.7.12, phpcpd:6.0.3, phpmd:2.12.0
+            composer:2.9.1, composer-normalize:2.48.2,
+            composer-unused:0.9.5, phpcpd:6.0.3, phpmd:2.12.0
 
       - name: Validate composer.json/composer.lock
         if: always() && steps.finishPrepare.outcome == 'success'

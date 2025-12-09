@@ -24,7 +24,7 @@
 		"source": "https://github.com/getkirby/cli"
 	},
 	"require": {
-		"php": "~8.1.0 || ~8.2.0 || ~8.3.0 || ~8.4.0",
+		"php": "~8.1.0 || ~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
 		"ext-zip": "*",
 		"composer-runtime-api": "^2.2",
 		"guzzlehttp/guzzle": "^7.10.0",
@@ -59,6 +59,6 @@
 			"@test"
 		],
 		"fix": "php-cs-fixer fix",
-		"test": "phpunit --stderr --coverage-html=tests/coverage"
+		"test": "phpunit"
 	}
 }

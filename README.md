@@ -73,6 +73,7 @@ This should print the Kirby CLI version and a list of available commands
 - kirby security
 - kirby unzip
 - kirby upgrade
+- kirby uuid:duplicates
 - kirby uuid:generate
 - kirby uuid:populate
 - kirby uuid:remove

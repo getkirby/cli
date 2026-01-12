@@ -48,7 +48,7 @@ class Download extends Command
 
 			file_put_contents($file, (string)$response->getBody());
 		} catch (Throwable $e) {
-			throw new Exception('The file could not be downloaded. (Status: ' . $e->getResponse()->getStatusCode() . ')');
+			throw new Exception('The file could not be downloaded. ' . $e->getMessage());
 		}
 	}
 

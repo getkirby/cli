@@ -5,11 +5,27 @@ declare(strict_types = 1);
 namespace Kirby\CLI\Commands\UUID;
 
 use Kirby\CLI\CLI;
+use Kirby\CLI\Command;
 use Kirby\Cms\ModelWithContent;
 use Kirby\Uuid\Uuid;
 
-class Duplicates
+class Duplicates extends Command
 {
+	public static function description(): string
+	{
+		return 'Find and optionally fix duplicate UUIDs';
+	}
+
+	public static function args(): array
+	{
+		return [
+			'fix' => [
+				'description' => 'Fix duplicate UUIDs by generating new ones',
+				'noValue'     => true,
+			],
+		];
+	}
+
 	protected static function check(CLI $cli, ModelWithContent $model, array &$uuids, array &$duplicates): void
 	{
 		$uuid = $model->content()->get('uuid');

@@ -10,6 +10,11 @@ use Kirby\Filesystem\F;
 
 class RootFolder extends PublicFolder
 {
+	public static function description(): string
+	{
+		return 'Switch to a root folder setup';
+	}
+
 	public static function command(CLI $cli): void
 	{
 		$dir = $cli->dir();

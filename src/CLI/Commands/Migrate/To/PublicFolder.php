@@ -5,11 +5,17 @@ declare(strict_types = 1);
 namespace Kirby\CLI\Commands\Migrate\To;
 
 use Kirby\CLI\CLI;
+use Kirby\CLI\Command;
 use Kirby\Filesystem\Dir;
 use Kirby\Filesystem\F;
 
-class PublicFolder
+class PublicFolder extends Command
 {
+	public static function description(): string
+	{
+		return 'Switch to a public folder setup';
+	}
+
 	public static function command(CLI $cli): void
 	{
 		$dir = $cli->dir();

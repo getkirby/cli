@@ -29,64 +29,41 @@ class Content extends Command
 		bool $dryrun = false,
 	): void {
 		foreach ($collection as $item) {
-			// get all fields in the content file
-			$contentFields = $item->content($lang)->fields();
-
-			// unset all fields in the `$ignore` array
-			foreach ($ignore as $field) {
-				if (array_key_exists($field, $contentFields) === true) {
-					unset($contentFields[$field]);
-				}
-			}
-
-			// get the keys and normalize to lowercase
-			$originalContentKeys = array_keys($contentFields);
-			$contentFieldKeys    = array_map('mb_strtolower', $originalContentKeys);
-
-			// get all field keys from blueprint and normalize to lowercase
-			$blueprintFields    = array_keys($item->blueprint()->fields());
-			$blueprintFieldKeys = array_map('mb_strtolower', $blueprintFields);
-
-			// get all field keys that are in $contentFieldKeys but not in $blueprintFieldKeys
-			$fieldsToBeDeleted = array_diff($contentFieldKeys, $blueprintFieldKeys);
-
-			// update page only if there are any fields to be deleted
-			if (count($fieldsToBeDeleted) === 0) {
-				continue;
-			}
-
-			// create a mapping: lowercase => original field name
-			$lowercaseToOriginal = array_combine($contentFieldKeys, $originalContentKeys);
-
-			// build data array with original field names as keys and null as values
-			$data = [];
-
-			foreach ($fieldsToBeDeleted as $lowercaseField) {
-				$originalField = $lowercaseToOriginal[$lowercaseField];
-				$data[$originalField] = null;
-
-				$cli->out('Remove "' . $originalField . '" from ' . $item::CLASS_ALIAS . ' (' . $item->id() . ')');
-			}
-
-			// don't update models that have changes
-			if ($item->version('changes')->exists($lang) === true) {
-				$cli->error('The ' . $item::CLASS_ALIAS . ' (' . $item->id() . ') has changes and cannot be cleaned. Save the changes and try again.');
-			}
-
-			// in a dry-run, the models will not be updated
-			if ($dryrun === true) {
-				continue;
-			}
-
-			// get the latest version of the item
-			$version = $item->version('latest');
-
-			// check if the version exists for the given language
-			// and try to update the page with the data
-			if ($version->exists($lang) === true) {
-				$version->update($data, $lang);
-			}
+			static::cleanItem($cli, $item, $lang, $ignore, $dryrun);
 		}
+	}
+
+	protected static function cleanItem(
+		CLI $cli,
+		$item,
+		string $lang,
+		array $ignore,
+		bool $dryrun
+	): void {
+		$fieldsToDelete = static::fieldsToDelete($item, $lang, $ignore);
+
+		if (count($fieldsToDelete) === 0) {
+			return;
+		}
+
+		// build data array with field names as keys and null as values
+		$data = [];
+
+		foreach ($fieldsToDelete as $field) {
+			$data[$field] = null;
+			$cli->out('Remove "' . $field . '" from ' . $item::CLASS_ALIAS . ' (' . $item->id() . ')');
+		}
+
+		// don't update models that have changes
+		if ($item->version('changes')->exists($lang) === true) {
+			$cli->error('The ' . $item::CLASS_ALIAS . ' (' . $item->id() . ') has changes and cannot be cleaned. Save the changes and try again.');
+		}
+
+		if ($dryrun === true) {
+			return;
+		}
+
+		static::updateVersion($item, $lang, $data);
 	}
 
 	public static function command(CLI $cli): void
@@ -124,5 +101,46 @@ class Content extends Command
 	public static function description(): string|null
 	{
 		return 'Deletes all fields from page, file or user content files that are not defined in the blueprint, no matter if they contain content or not.';
+	}
+
+	/**
+	 * Returns an array of field names that are in the content
+	 * but not defined in the blueprint
+	 */
+	protected static function fieldsToDelete($item, string $lang, array $ignore): array
+	{
+		$contentFields = $item->content($lang)->fields();
+
+		// remove ignored fields
+		foreach ($ignore as $field) {
+			unset($contentFields[$field]);
+		}
+
+		// get the original field names
+		$contentFieldNames = array_keys($contentFields);
+
+		// get all field keys from blueprint (lowercase)
+		$blueprintFields = array_keys($item->blueprint()->fields());
+		$blueprintLower  = array_map('mb_strtolower', $blueprintFields);
+
+		// find fields not in blueprint
+		$fieldsToDelete = [];
+
+		foreach ($contentFieldNames as $field) {
+			if (in_array(mb_strtolower($field), $blueprintLower, true) === false) {
+				$fieldsToDelete[] = $field;
+			}
+		}
+
+		return $fieldsToDelete;
+	}
+
+	protected static function updateVersion($item, string $lang, array $data): void
+	{
+		$version = $item->version('latest');
+
+		if ($version->exists($lang) === true) {
+			$version->update($data, $lang);
+		}
 	}
 }

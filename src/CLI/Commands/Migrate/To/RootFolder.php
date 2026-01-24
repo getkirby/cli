@@ -42,9 +42,33 @@ class RootFolder extends PublicFolder
 
 		static::makeIndexPHP($cli, $dir);
 		static::removePublicDir($cli, $publicDir);
+		static::updateComposerConfig($cli);
 
 		$cli->br();
 		$cli->success('Migrated to a root folder setup');
+	}
+
+	protected static function updateComposerConfig(CLI $cli): void
+	{
+		$file = $cli->dir() . '/composer.json';
+
+		if (is_file($file) === false) {
+			return;
+		}
+
+		$composer = json_decode(F::read($file), true);
+		$start    = $composer['scripts']['start'] ?? null;
+
+		if (is_array($start) === true) {
+			foreach ($start as $key => $command) {
+				if (str_contains($command, '-S localhost:8000 -t public') === true) {
+					$composer['scripts']['start'][$key] = str_replace('-S localhost:8000 -t public', '-S localhost:8000', $command);
+				}
+			}
+
+			F::write($file, $cli->json($composer));
+			$cli->out('✅ The composer.json has been updated');
+		}
 	}
 
 	protected static function makeIndexPHP(CLI $cli, string $dir)

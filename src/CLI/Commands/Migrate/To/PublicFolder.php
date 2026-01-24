@@ -32,6 +32,7 @@ class PublicFolder extends Command
 
 		static::makeIndexPHP($cli, $publicDir);
 		static::removeOldIndexPHP($cli);
+		static::updateComposerConfig($cli);
 
 		$cli->br();
 		$cli->success('Migrated to a public folder setup');
@@ -47,6 +48,29 @@ class PublicFolder extends Command
 	public static function description(): string
 	{
 		return 'Switch to a public folder setup';
+	}
+
+	protected static function updateComposerConfig(CLI $cli): void
+	{
+		$file = $cli->dir() . '/composer.json';
+
+		if (is_file($file) === false) {
+			return;
+		}
+
+		$composer = json_decode(F::read($file), true);
+		$start    = $composer['scripts']['start'] ?? null;
+
+		if (is_array($start) === true) {
+			foreach ($start as $key => $command) {
+				if (str_contains($command, '-S localhost:8000') === true && str_contains($command, '-t public') === false) {
+					$composer['scripts']['start'][$key] = str_replace('-S localhost:8000', '-S localhost:8000 -t public', $command);
+				}
+			}
+
+			F::write($file, $cli->json($composer));
+			$cli->out('✅ The composer.json has been updated');
+		}
 	}
 
 	protected static function makeIndexPHP(CLI $cli, string $dir)

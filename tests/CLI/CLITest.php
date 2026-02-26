@@ -12,7 +12,7 @@ class CLITest extends TestCase
 {
 	public function setUp(): void
 	{
-		chdir(__DIR__);
+		chdir(__DIR__ . '/fixtures');
 	}
 
 	/**
@@ -36,7 +36,7 @@ class CLITest extends TestCase
 		$this->assertSame([], $commands);
 
 		// existing command directory
-		$commands = $cli->commandsInDirectory(__DIR__ . '/commands');
+		$commands = $cli->commandsInDirectory(__DIR__ . '/fixtures/commands');
 		$expected = [
 			'invalid-action',
 			'invalid-format',
@@ -55,11 +55,11 @@ class CLITest extends TestCase
 		$cli = new CLI();
 
 		// current working directory
-		$this->assertSame(__DIR__, $cli->dir());
+		$this->assertSame(__DIR__ . '/fixtures', $cli->dir());
 
 		// relative
-		$this->assertSame(__DIR__ . '/./commands', $cli->dir('./commands'));
-		$this->assertSame(__DIR__ . '/../commands', $cli->dir('../commands'));
+		$this->assertSame(__DIR__ . '/fixtures/./commands', $cli->dir('./commands'));
+		$this->assertSame(__DIR__ . '/fixtures/../commands', $cli->dir('../commands'));
 
 		// absolute
 		$this->assertSame('/test', $cli->dir('/test'));
@@ -211,7 +211,7 @@ class CLITest extends TestCase
 
 		$this->assertSame(dirname(__DIR__, 2) . '/commands', $cli->root('commands.core'));
 		$this->assertSame($cli->home() . '/commands', $cli->root('commands.global'));
-		$this->assertSame(__DIR__ . '/commands', $cli->root('commands.local'));
+		$this->assertSame(__DIR__ . '/fixtures/commands', $cli->root('commands.local'));
 	}
 
 	/**

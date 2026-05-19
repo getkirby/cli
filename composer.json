@@ -28,7 +28,7 @@
 		"ext-zip": "*",
 		"composer-runtime-api": "^2.2",
 		"guzzlehttp/guzzle": "^7.10.0",
-		"league/climate": "^3.10.0"
+		"league/climate": "^3.10.1"
 	},
 	"autoload": {
 		"psr-4": {

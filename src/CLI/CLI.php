@@ -251,6 +251,30 @@ class CLI
 	}
 
 	/**
+	 * Creates a command array from a classname
+	 */
+	protected function createClassCommand(string $className): array
+	{
+		if (class_exists($className) === false) {
+			throw new Exception("Command class {$className} does not exist");
+		}
+
+		// Check if the class extends the abstract Command class
+		if (is_subclass_of($className, Command::class) === false) {
+			throw new Exception("Command class {$className} must extend " . Command::class);
+		}
+
+		// Build command array with optional description and args
+		$command = [
+			'args'        => $className::args(),
+			'command'     => $className::command(...),
+			'description' => $className::description(),
+		];
+
+		return $command;
+	}
+
+	/**
 	 * Creates default values for command roots
 	 * if they are not set
 	 */
@@ -388,6 +412,11 @@ class CLI
 			if (empty($command) === true) {
 				throw $e;
 			}
+		}
+
+		// if it's a simple classname string, convert to command array
+		if (is_string($command) === true) {
+			$command = $this->createClassCommand($command);
 		}
 
 		// validate the command format

@@ -1,0 +1,18 @@
+name: Enforce branch
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate source branch
+        run: |
+          if [[ ! "$GITHUB_HEAD_REF" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::PRs to main must come from a release/X.Y.Z branch (got '$GITHUB_HEAD_REF')"
+            exit 1
+          fi
+          echo "OK: source branch '$GITHUB_HEAD_REF' is a valid release branch"

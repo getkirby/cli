@@ -106,6 +106,35 @@ return [
 
 You can define your command logic in the command callback. The `$cli` object comes with a set of handy tools to create output, parse command arguments, create prompts and more.
 
+### Command Classes
+
+You can also define commands as classes. Your custom command class must extend the built-in `Kirby\CLI\Command` class:
+
+```php
+use Kirby\CLI\CLI;
+use Kirby\CLI\Command;
+
+class HelloWorld extends Command
+{
+	public static function args(): array
+	{
+		return [
+			// optional args
+		];
+	}
+
+	public static function command(CLI $cli): void
+	{
+		$cli->out('Hello world');
+	}
+
+	public static function description(): string|null
+	{
+		return 'The infamous hello world example';
+	}
+}
+```
+
 ## Global commands
 
 You might have some commands that you need for all your local Kirby installations. This is where global commands come in handy. You can create a new global command with the `--global` flag:
@@ -130,15 +159,48 @@ Your Kirby plugins can define their own set of commands: https://getkirby.com/do
 
 ```php
 Kirby::plugin('your/plugin', [
-  'commands' => [
-    'your-plugin:test' => [
-      'description' => 'Nice command',
-      'args' => [],
-      'command' => function ($cli) {
-        $cli->success('My first plugin command');
-      }
-    ]
-  ]
+	'commands' => [
+		'your-plugin:test' => [
+			'description' => 'Nice command',
+			'args' => [],
+			'command' => function ($cli) {
+				$cli->success('My first plugin command');
+			}
+		]
+	]
+]);
+```
+
+### Command plugin with custom class
+
+```php
+use Kirby\CLI\CLI;
+use Kirby\CLI\Command;
+
+class HelloWorld extends Command
+{
+	public static function args(): array
+	{
+		return [
+			// optional args
+		];
+	}
+
+	public static function command(CLI $cli): void
+	{
+		$cli->out('Hello world');
+	}
+
+	public static function description(): string|null
+	{
+		return 'The infamous hello world example';
+	}
+}
+
+Kirby::plugin('your/plugin', [
+	'commands' => [
+		'helloworld' => HelloWorld::class
+	]
 ]);
 ```
 

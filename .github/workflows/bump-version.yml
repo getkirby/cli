@@ -1,0 +1,34 @@
+name: Bump version
+
+on:
+  push:
+    branches:
+      - 'release/**'
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate & bump
+        run: |
+          VERSION="${GITHUB_REF_NAME#release/}"
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Branch name must be release/X.Y.Z (got '$GITHUB_REF_NAME')"
+            exit 1
+          fi
+          CURRENT=$(composer config version 2>/dev/null || echo "")
+          if [ "$CURRENT" != "$VERSION" ]; then
+            composer config version "$VERSION"
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add composer.json
+            git commit -m "chore: bump composer.json to $VERSION"
+            git push origin "${GITHUB_REF_NAME}"
+          fi

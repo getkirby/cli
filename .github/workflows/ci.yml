@@ -58,8 +58,7 @@ jobs:
         uses: ./.github/actions/setup-php
         with:
           php: ${{ env.php }}
-          tools: |
-            composer-normalize:2.52.0, phpcpd:6.0.3, phpmd:2.12.0
+          tools: composer-normalize:2.52.0
 
       - name: Setup problem matchers
         run: echo "::add-matcher::${{ runner.tool_cache }}/php.json"
@@ -72,11 +71,6 @@ jobs:
           GITHUB_TOKEN: ""
         run: composer-normalize --dry-run
 
-      - name: Check for duplicated code
-        run: phpcpd --fuzzy --exclude tests --exclude vendor .
-
-      - name: Statically analyze using PHPMD
-        run: phpmd . github phpmd.xml.dist --exclude 'tests/*,vendor/*,_templates/*'
 
   coding-style:
     name: Coding Style

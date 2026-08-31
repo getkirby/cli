@@ -49,6 +49,10 @@ jobs:
     timeout-minutes: 5
     env:
       php: "8.3"
+      # lowest PHP version supported by composer.json;
+      # Psalm analyzes against it so that CI catches
+      # syntax and functions that are not available there
+      target: "8.2"
 
     steps:
       - name: Checkout
@@ -71,6 +75,17 @@ jobs:
           GITHUB_TOKEN: ""
         run: composer-normalize --dry-run
 
+      - name: Cache Psalm analysis data
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # pin@v6.1.0
+        with:
+          path: ~/.cache/psalm
+          key: psalm-${{ env.php }}-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            psalm-${{ env.php }}-
+            psalm-
+
+      - name: Statically analyze using Psalm
+        run: composer run analyze:psalm -- --output-format=github --php-version=${{ env.target }}
 
   coding-style:
     name: Coding Style

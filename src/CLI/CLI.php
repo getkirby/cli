@@ -14,6 +14,10 @@ use Throwable;
 /**
  * Command Line Interface for Kirby
  *
+ * @method CLImate success(string|null $str = null) Custom style command, registered in `CLI::run()`
+ *
+ * @mixin CLImate
+ *
  * @copyright Bastian Allgeier
  * @license   https://opensource.org/licenses/MIT
  */

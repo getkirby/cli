@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="6.16.1@f1f5de594dc76faf8784e02d3dc4716c91c6f6ac">
+  <file src="src/CLI/CLI.php">
+    <FalsableReturnStatement>
+      <code><![CDATA[$current]]></code>
+      <code><![CDATA[json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]]></code>
+    </FalsableReturnStatement>
+  </file>
+  <file src="src/CLI/Commands/Clean/Content.php">
+    <InvalidCast>
+      <code><![CDATA[$blueprintFields]]></code>
+      <code><![CDATA[$field]]></code>
+    </InvalidCast>
+  </file>
+  <file src="src/CLI/Commands/Migrate/To/RootFolder.php">
+    <ParamNameMismatch>
+      <code><![CDATA[$dir]]></code>
+    </ParamNameMismatch>
+  </file>
+  <file src="src/CLI/Commands/Security.php">
+    <InvalidOperand>
+      <code><![CDATA[$updateStatus->exceptionMessages()]]></code>
+    </InvalidOperand>
+  </file>
+</files>

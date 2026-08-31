@@ -364,7 +364,7 @@ class CLI
 	/**
 	 * Creates pretty json
 	 */
-	public function json(array $data = []): string
+	public function json(array|object $data = []): string
 	{
 		return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 	}

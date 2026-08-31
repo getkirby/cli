@@ -380,7 +380,7 @@ class CLI
 	 */
 	public function kirby(bool $fail = true): App|null
 	{
-		if (is_a($this->kirby, 'Kirby\Cms\App') === false) {
+		if ($this->kirby === null) {
 			if ($fail === true) {
 				throw new Exception('The Kirby installation could not be found');
 			}

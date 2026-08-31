@@ -321,17 +321,28 @@ class CLI
 	 */
 	public function dir(string|null $folder = null): string
 	{
+		// treat an empty string like a missing folder
+		if ($folder === '') {
+			$folder = null;
+		}
+
+		// a folder that is not relative does not
+		// depend on the current working directory
+		if ($folder !== null && str_starts_with($folder, '.') === false) {
+			return $folder;
+		}
+
 		$current = getcwd();
 
-		if (empty($folder) === true) {
+		if ($current === false) {
+			throw new Exception('The current working directory could not be determined');
+		}
+
+		if ($folder === null) {
 			return $current;
 		}
 
-		if (str_starts_with($folder, '.') === true) {
-			return $current . '/' . $folder;
-		}
-
-		return $folder;
+		return $current . '/' . $folder;
 	}
 
 	/**
@@ -375,7 +386,7 @@ class CLI
 	 */
 	public function json(array $data = []): string
 	{
-		return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+		return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 	}
 
 	/**

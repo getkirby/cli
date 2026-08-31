@@ -10,13 +10,6 @@ use PHPUnit\Framework\Attributes\CoversFunction;
 #[CoversFunction('index')]
 class BootstrapTest extends TestCase
 {
-	public function testIndexInRoot(): void
-	{
-		chdir($root = __DIR__ . '/fixtures/bootstrap/a');
-		$this->assertSame($root . '/index.php', index());
-		$this->assertSame($root . '/index.php', bootstrap());
-	}
-
 	public function testIndexInPublic(): void
 	{
 		chdir($root = __DIR__ . '/fixtures/bootstrap/c');
@@ -29,6 +22,13 @@ class BootstrapTest extends TestCase
 		chdir($root = __DIR__ . '/fixtures/bootstrap/d');
 		$this->assertSame($root . '/public_html/index.php', index());
 		$this->assertSame($root . '/public_html/index.php', bootstrap());
+	}
+
+	public function testIndexInRoot(): void
+	{
+		chdir($root = __DIR__ . '/fixtures/bootstrap/a');
+		$this->assertSame($root . '/index.php', index());
+		$this->assertSame($root . '/index.php', bootstrap());
 	}
 
 	public function testIndexInWww(): void

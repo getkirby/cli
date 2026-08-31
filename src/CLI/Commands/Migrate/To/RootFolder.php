@@ -10,11 +10,6 @@ use Kirby\Filesystem\F;
 
 class RootFolder extends PublicFolder
 {
-	public static function description(): string
-	{
-		return 'Switch to a root folder setup';
-	}
-
 	public static function command(CLI $cli): void
 	{
 		$dir = $cli->dir();
@@ -47,6 +42,11 @@ class RootFolder extends PublicFolder
 		$cli->success('Migrated to a root folder setup');
 	}
 
+	public static function description(): string
+	{
+		return 'Switch to a root folder setup';
+	}
+
 	protected static function makeIndexPHP(CLI $cli, string $dir)
 	{
 		$template = $cli->root('commands.core') . '/migrate/to/_templates/index.root.simple.php';
@@ -72,5 +72,4 @@ class RootFolder extends PublicFolder
 			$cli->out('🚨 The public directory could not been removed');
 		}
 	}
-
 }

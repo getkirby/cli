@@ -59,6 +59,6 @@
 			"@test"
 		],
 		"fix": "cpx getkirby/php-cs:^0.2 fix",
-		"test": "phpunit"
+		"test": "cpx phpunit/phpunit:12.5.34"
 	}
 }

@@ -1,0 +1,84 @@
+name: Setup PHP
+description: Shared steps to set up PHP, its extension cache and cpx
+
+inputs:
+  php:
+    required: true
+  extensions:
+    required: false
+    default: "mbstring, zip"
+  ini:
+    required: false
+    default: ""
+  coverage:
+    required: false
+    default: none
+  tools:
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Setup PHP cache environment
+      id: php-cache
+      uses: shivammathur/cache-extensions@de3c642a5fce0ef91581a1c9831e229f525196d6 # pin@1.15.1
+      with:
+        php-version: ${{ inputs.php }}
+        extensions: ${{ inputs.extensions }}
+        key: php-v1
+
+    - name: Cache PHP extensions
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # pin@v6.1.0
+      with:
+        path: ${{ steps.php-cache.outputs.dir }}
+        key: ${{ steps.php-cache.outputs.key }}
+        restore-keys: ${{ steps.php-cache.outputs.key }}
+
+    - name: Setup PHP environment
+      uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # pin@2.37.2
+      with:
+        php-version: ${{ inputs.php }}
+        extensions: ${{ inputs.extensions }}
+        ini-values: ${{ inputs.ini }}
+        coverage: ${{ inputs.coverage }}
+        tools: ${{ inputs.tools }}
+
+    - name: Cache global Composer packages
+      id: composer-global-cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # pin@v6.1.0
+      with:
+        path: ~/.composer/vendor
+        key: composer-global-cpx-2.0.0-${{ runner.os }}
+
+    - name: Install cpx
+      if: steps.composer-global-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: composer global require cpx/cpx:2.0.0
+
+    - name: Ensure that the cpx cache dir exists
+      shell: bash
+      run: mkdir -p ~/.cpx
+
+    - name: Cache cpx tools
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # pin@v6.1.0
+      with:
+        path: ~/.cpx
+        key: cpx-${{ runner.os }}-php${{ inputs.php }}-${{ hashFiles('composer.json') }}
+        restore-keys: cpx-${{ runner.os }}-php${{ inputs.php }}-
+
+    - name: Get the Composer cache directory
+      id: composer-cache
+      shell: bash
+      run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+    - name: Cache Composer dependencies
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # pin@v6.1.0
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: ${{ runner.os }}-composer-
+
+    - name: Install dependencies
+      shell: bash
+      run: composer install --prefer-dist

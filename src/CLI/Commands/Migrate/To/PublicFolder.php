@@ -11,11 +11,6 @@ use Kirby\Filesystem\F;
 
 class PublicFolder extends Command
 {
-	public static function description(): string
-	{
-		return 'Switch to a public folder setup';
-	}
-
 	public static function command(CLI $cli): void
 	{
 		$dir = $cli->dir();
@@ -49,11 +44,16 @@ class PublicFolder extends Command
 		$cli->br();
 	}
 
-	protected static function makeIndexPHP(CLI $cli, string $publicDir)
+	public static function description(): string
+	{
+		return 'Switch to a public folder setup';
+	}
+
+	protected static function makeIndexPHP(CLI $cli, string $dir)
 	{
 		$template = $cli->root('commands.core') . '/migrate/to/_templates/index.public.simple.php';
 
-		$cli->make($publicDir . '/index.php', $template);
+		$cli->make($dir . '/index.php', $template);
 
 		$cli->out('✅ The index.php has been created');
 	}
@@ -170,5 +170,4 @@ class PublicFolder extends Command
 			$cli->out('🚨 The old index.php could not been removed');
 		}
 	}
-
 }

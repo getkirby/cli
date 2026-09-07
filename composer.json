@@ -24,11 +24,11 @@
 		"source": "https://github.com/getkirby/cli"
 	},
 	"require": {
-		"php": "~8.1.0 || ~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
+		"php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
 		"ext-zip": "*",
 		"composer-runtime-api": "^2.2",
-		"guzzlehttp/guzzle": "^7.13.1",
-		"league/climate": "^3.11.0"
+		"guzzlehttp/guzzle": "^7.15.5",
+		"league/climate": "^3.12.0"
 	},
 	"autoload": {
 		"psr-4": {
@@ -47,18 +47,16 @@
 	"scripts": {
 		"analyze": [
 			"@analyze:composer",
-			"@analyze:phpcpd",
-			"@analyze:phpmd"
+			"@analyze:psalm"
 		],
 		"analyze:composer": "composer validate --strict --no-check-version --no-check-all",
-		"analyze:phpcpd": "phpcpd --fuzzy --exclude tests --exclude vendor .",
-		"analyze:phpmd": "phpmd . ansi phpmd.xml.dist --exclude 'tests/*,vendor/*,_templates/*'",
-		"analyze:psalm": "psalm",
+		"analyze:psalm": "cpx vimeo/psalm:6.16.1",
 		"ci": [
 			"@fix",
+			"@analyze",
 			"@test"
 		],
-		"fix": "php-cs-fixer fix",
-		"test": "phpunit"
+		"fix": "cpx getkirby/php-cs:^0.2 fix",
+		"test": "cpx phpunit/phpunit:12.5.34"
 	}
 }

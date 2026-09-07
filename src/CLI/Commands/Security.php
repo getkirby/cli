@@ -17,9 +17,12 @@ class Security extends Command
 		$kirby        = $cli->kirby();
 		$system       = $kirby->system();
 		$updateStatus = $system->updateStatus();
-		$messages     = [
+
+		/** @var string[] $messages */
+		$messages = $updateStatus?->exceptionMessages() ?? [];
+		$messages = [
 			...array_column($updateStatus?->messages() ?? [], 'text'),
-			...$updateStatus->exceptionMessages()
+			...$messages
 		];
 
 		if ($kirby->option('debug', false) === true) {

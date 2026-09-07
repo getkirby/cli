@@ -14,9 +14,10 @@ use Throwable;
 /**
  * Command Line Interface for Kirby
  *
- * @package   Kirby CLI
- * @author    Bastian Allgeier <bastian@getkirby.com>
- * @link      https://getkirby.com
+ * @method CLImate success(string|null $str = null) Custom style command, registered in `CLI::run()`
+ *
+ * @mixin CLImate
+ *
  * @copyright Bastian Allgeier
  * @license   https://opensource.org/licenses/MIT
  */
@@ -28,14 +29,6 @@ class CLI
 	protected array $roots;
 
 	/**
-	 * Proxy for CLImate methods
-	 */
-	public function __call(string $method, array $arguments = [])
-	{
-		return $this->climate->$method(...$arguments);
-	}
-
-	/**
 	 * Creates a new CLI instance
 	 */
 	public function __construct()
@@ -43,12 +36,23 @@ class CLI
 		$this->climate = new CLImate();
 		$this->roots   = [];
 
-		if (function_exists('kirby') === true && class_exists('Kirby\Cms\App') === true) {
+		if (
+			function_exists('kirby') === true &&
+			class_exists('Kirby\Cms\App') === true
+		) {
 			$this->kirby = App::instance();
 			$this->roots = $this->kirby->roots()->toArray();
 		}
 
 		$this->createCommandRoots();
+	}
+
+	/**
+	 * Proxy for CLImate methods
+	 */
+	public function __call(string $method, array $arguments = [])
+	{
+		return $this->climate->$method(...$arguments);
 	}
 
 	/**
@@ -64,8 +68,11 @@ class CLI
 	 * of the arguments and otherwise
 	 * shows a prompt for it
 	 */
-	public function argOrPrompt(string $name, string $prompt, bool $required = true)
-	{
+	public function argOrPrompt(
+		string $name,
+		string $prompt,
+		bool $required = true
+	) {
 		$value = $this->arg($name);
 
 		if (empty($value) === true) {
@@ -209,8 +216,10 @@ class CLI
 	 * Shows a prompt which has to be confirmed
 	 * in order to execute the callback
 	 */
-	public function confirmToContinue(string $message, ?callable $onExit = null): void
-	{
+	public function confirmToContinue(
+		string $message,
+		callable|null $onExit = null
+	): void {
 		$input = $this->confirm($message);
 
 		if ($input->confirmed() === false) {
@@ -310,19 +319,30 @@ class CLI
 	/**
 	 * Get the current working directory
 	 */
-	public function dir(?string $folder = null): string
+	public function dir(string|null $folder = null): string
 	{
+		// treat an empty string like a missing folder
+		if ($folder === '') {
+			$folder = null;
+		}
+
+		// a folder that is not relative does not
+		// depend on the current working directory
+		if ($folder !== null && str_starts_with($folder, '.') === false) {
+			return $folder;
+		}
+
 		$current = getcwd();
 
-		if (empty($folder) === true) {
+		if ($current === false) {
+			throw new Exception('The current working directory could not be determined');
+		}
+
+		if ($folder === null) {
 			return $current;
 		}
 
-		if (str_starts_with($folder, '.') === true) {
-			return $current . '/' . $folder;
-		}
-
-		return $folder;
+		return $current . '/' . $folder;
 	}
 
 	/**
@@ -366,16 +386,16 @@ class CLI
 	 */
 	public function json(array $data = []): string
 	{
-		return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+		return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 	}
 
 	/**
 	 * Returns the parent Kirby instance
 	 * if an installation can be found
 	 */
-	public function kirby(bool $fail = true): ?App
+	public function kirby(bool $fail = true): App|null
 	{
-		if (is_a($this->kirby, 'Kirby\Cms\App') === false) {
+		if ($this->kirby === null) {
 			if ($fail === true) {
 				throw new Exception('The Kirby installation could not be found');
 			}
@@ -512,7 +532,7 @@ class CLI
 	 * Returns a root either from the custom roots
 	 * array or from the Kirby instance
 	 */
-	public function root(string $key): ?string
+	public function root(string $key): string|null
 	{
 		return $this->roots[$key] ?? $this->kirby?->root($key);
 	}
@@ -528,7 +548,7 @@ class CLI
 	/**
 	 * Load and execute a command
 	 */
-	public function run(?string $name = null, ...$args): void
+	public function run(string|null $name = null, ...$args): void
 	{
 		// create clean new climate instance
 		$this->climate = new CLImate();

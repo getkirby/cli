@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace Kirby\CLI;
 
 use Exception;
+use Kirby\Cms\App;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
@@ -16,19 +17,19 @@ use RecursiveIteratorIterator;
  */
 class KirbyInstallation
 {
-	protected static string|null $baseDir = null;
-	protected static string|null $bootstrappedVersion = null;
-	protected static array $downloadedVersions = [];
-
 	protected \Kirby\Cms\App|null $app = null;
 	protected string $tempDir;
 	protected string $version;
 
+	protected static string|null $baseDir = null;
+	protected static string|null $bootstrappedVersion = null;
+	protected static array $downloadedVersions = [];
+
 	/**
 	 * Creates a new temporary Kirby installation
 	 *
-	 * @param string $version Git tag or 'main' for latest
-	 * @param array $content Array of content files to create (path => content)
+	 * @param $version Git tag or 'main' for latest
+	 * @param $content Array of content files to create (path => content)
 	 */
 	public function __construct(
 		string $version = 'main',
@@ -46,7 +47,7 @@ class KirbyInstallation
 	/**
 	 * Returns the App instance
 	 */
-	public function app(): \Kirby\Cms\App
+	public function app(): App
 	{
 		return $this->app;
 	}
@@ -63,7 +64,7 @@ class KirbyInstallation
 
 		// Destroy the Kirby App instance
 		if ($this->app !== null) {
-			\Kirby\Cms\App::destroy();
+			App::destroy();
 			$this->app = null;
 		}
 	}
@@ -86,7 +87,7 @@ class KirbyInstallation
 	 */
 	protected function createApp(): void
 	{
-		$this->app = new \Kirby\Cms\App([
+		$this->app = new App([
 			'roots' => [
 				'index'   => $this->tempDir,
 				'content' => $this->tempDir . '/content',

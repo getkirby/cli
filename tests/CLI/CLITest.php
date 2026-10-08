@@ -1,33 +1,28 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Kirby\CLI;
 
 use Exception;
 use League\CLImate\CLImate;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @coversDefaultClass \Kirby\CLI\CLI
- */
+#[CoversClass(CLI::class)]
 class CLITest extends TestCase
 {
-	public function setUp(): void
+	protected function setUp(): void
 	{
 		chdir(__DIR__ . '/fixtures');
 	}
 
-	/**
-	 * @covers ::climate
-	 */
-	public function testClimate()
+	public function testClimate(): void
 	{
 		$cli = new CLI();
 		$this->assertInstanceOf(CLImate::class, $cli->climate());
 	}
 
-	/**
-	 * @covers ::commandsInDirectory
-	 */
-	public function testCommandsInDirectory()
+	public function testCommandsInDirectory(): void
 	{
 		$cli = new CLI();
 
@@ -47,10 +42,7 @@ class CLITest extends TestCase
 		$this->assertSame($expected, $commands);
 	}
 
-	/**
-	 * @covers ::dir
-	 */
-	public function testDir()
+	public function testDir(): void
 	{
 		$cli = new CLI();
 
@@ -71,10 +63,7 @@ class CLITest extends TestCase
 		$this->assertSame('0', $cli->dir('0'));
 	}
 
-	/**
-	 * @covers ::home
-	 */
-	public function testHome()
+	public function testHome(): void
 	{
 		$homeBefore    = getenv('HOME');
 		$xdgHomeBefore = getenv('XDG_CONFIG_HOME');
@@ -91,10 +80,7 @@ class CLITest extends TestCase
 		putenv('XDG_CONFIG_HOME=' . $xdgHomeBefore);
 	}
 
-	/**
-	 * @covers ::home
-	 */
-	public function testHomeWithXdgConfig()
+	public function testHomeWithXdgConfig(): void
 	{
 		$before = getenv('XDG_CONFIG_HOME');
 
@@ -107,10 +93,7 @@ class CLITest extends TestCase
 		putenv('XDG_CONFIG_HOME=' . $before);
 	}
 
-	/**
-	 * @covers ::json
-	 */
-	public function testJson()
+	public function testJson(): void
 	{
 		$cli = new CLI();
 		$json = $cli->json([
@@ -124,10 +107,7 @@ class CLITest extends TestCase
 		$this->assertSame($expected, $json);
 	}
 
-	/**
-	 * @covers ::kirby
-	 */
-	public function testKirby()
+	public function testKirby(): void
 	{
 		$cli = new CLI();
 
@@ -137,20 +117,14 @@ class CLITest extends TestCase
 		$cli->kirby();
 	}
 
-	/**
-	 * @covers ::kirby
-	 */
-	public function testKirbyWithoutFailing()
+	public function testKirbyWithoutFailing(): void
 	{
 		$cli = new CLI();
 
 		$this->assertNull($cli->kirby(false));
 	}
 
-	/**
-	 * @covers ::load
-	 */
-	public function testLoadFromCoreCommands()
+	public function testLoadFromCoreCommands(): void
 	{
 		$cli = new CLI();
 
@@ -158,10 +132,7 @@ class CLITest extends TestCase
 		$this->assertSame('Installs the kirby folder', $command['description']);
 	}
 
-	/**
-	 * @covers ::load
-	 */
-	public function testLoadFromLocalCommands()
+	public function testLoadFromLocalCommands(): void
 	{
 		$cli = new CLI();
 
@@ -169,10 +140,7 @@ class CLITest extends TestCase
 		$this->assertSame('Test', $command['description']);
 	}
 
-	/**
-	 * @covers ::load
-	 */
-	public function testLoadInvalidCommand()
+	public function testLoadInvalidCommand(): void
 	{
 		$cli = new CLI();
 
@@ -182,10 +150,7 @@ class CLITest extends TestCase
 		$cli->load('foo');
 	}
 
-	/**
-	 * @covers ::load
-	 */
-	public function testLoadInvalidCommandAction()
+	public function testLoadInvalidCommandAction(): void
 	{
 		$cli = new CLI();
 
@@ -195,10 +160,7 @@ class CLITest extends TestCase
 		$cli->load('invalid-action');
 	}
 
-	/**
-	 * @covers ::load
-	 */
-	public function testLoadInvalidCommandFormat()
+	public function testLoadInvalidCommandFormat(): void
 	{
 		$cli = new CLI();
 
@@ -208,10 +170,7 @@ class CLITest extends TestCase
 		$cli->load('invalid-format');
 	}
 
-	/**
-	 * @covers ::root
-	 */
-	public function testRoot()
+	public function testRoot(): void
 	{
 		$cli = new CLI();
 
@@ -220,10 +179,7 @@ class CLITest extends TestCase
 		$this->assertSame(__DIR__ . '/fixtures/commands', $cli->root('commands.local'));
 	}
 
-	/**
-	 * @covers ::roots
-	 */
-	public function testRoots()
+	public function testRoots(): void
 	{
 		$cli = new CLI();
 		$roots = $cli->roots();
@@ -233,10 +189,7 @@ class CLITest extends TestCase
 		$this->assertArrayHasKey('commands.global', $roots);
 	}
 
-	/**
-	 * @covers ::template
-	 */
-	public function testTemplate()
+	public function testTemplate(): void
 	{
 		$cli = new CLI();
 
@@ -245,10 +198,7 @@ class CLITest extends TestCase
 		$this->assertSame('Hello world', $result);
 	}
 
-	/**
-	 * @covers ::version
-	 */
-	public function testVersion()
+	public function testVersion(): void
 	{
 		$cli = new CLI();
 		$this->assertMatchesRegularExpression('!^[0-9]+.[0-9]+.[0-9]+$!', $cli->version());

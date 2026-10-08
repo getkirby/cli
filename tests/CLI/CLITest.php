@@ -11,6 +11,26 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(CLI::class)]
 class CLITest extends TestCase
 {
+	/**
+	 * Runs the CLI binary in a separate process,
+	 * because a failing command ends the process
+	 * and its exit status is what we need to check
+	 */
+	protected function runBinary(string ...$args): array
+	{
+		$process = proc_open(
+			[PHP_BINARY, dirname(__DIR__, 2) . '/bin/kirby', ...$args],
+			[1 => ['pipe', 'w'], 2 => ['redirect', 1]],
+			$pipes,
+			__DIR__ . '/fixtures'
+		);
+
+		$output = stream_get_contents($pipes[1]);
+		fclose($pipes[1]);
+
+		return [proc_close($process), $output];
+	}
+
 	protected function setUp(): void
 	{
 		chdir(__DIR__ . '/fixtures');
@@ -20,6 +40,12 @@ class CLITest extends TestCase
 	{
 		$cli = new CLI();
 		$this->assertInstanceOf(CLImate::class, $cli->climate());
+	}
+
+	public function testCommand(): void
+	{
+		[$status] = $this->runBinary('test');
+		$this->assertSame(0, $status);
 	}
 
 	public function testCommandsInDirectory(): void
@@ -33,6 +59,7 @@ class CLITest extends TestCase
 		// existing command directory
 		$commands = $cli->commandsInDirectory(__DIR__ . '/fixtures/commands');
 		$expected = [
+			'fail',
 			'invalid-action',
 			'invalid-format',
 			'nested:command',
@@ -40,6 +67,28 @@ class CLITest extends TestCase
 		];
 
 		$this->assertSame($expected, $commands);
+	}
+
+	public function testCommandWithError(): void
+	{
+		[$status, $output] = $this->runBinary('fail');
+		$this->assertSame(1, $status);
+		$this->assertStringContainsString('Something went wrong', $output);
+	}
+
+	public function testCommandWithErrorInDebugMode(): void
+	{
+		// the exception is rethrown and
+		// PHP exits with its own error status
+		[$status] = $this->runBinary('fail', '--debug');
+		$this->assertSame(255, $status);
+	}
+
+	public function testCommandWithMissingCommand(): void
+	{
+		[$status, $output] = $this->runBinary('does-not-exist');
+		$this->assertSame(1, $status);
+		$this->assertStringContainsString('The command does not exist', $output);
 	}
 
 	public function testDir(): void

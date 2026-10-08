@@ -355,7 +355,7 @@ class CLI
 		}
 
 		$this->error($e->getMessage());
-		exit;
+		exit(1);
 	}
 
 	/**

@@ -13,35 +13,19 @@ class RootFolderTest extends TestCase
 {
 	protected string|null $cwd = null;
 
-	public static function startCommandProvider(): array
+	protected function setUp(): void
 	{
-		return [
-			// removes the document root from the start script
-			[
-				'@php -S localhost:8000 -t public kirby/router.php',
-				'@php -S localhost:8000 kirby/router.php'
-			],
-			// removes any other document root as well
-			[
-				'@php -S localhost:8000 -t public_html kirby/router.php',
-				'@php -S localhost:8000 kirby/router.php'
-			],
-			// no matter where it sits in the command
-			[
-				'@php -t public -S localhost:8000 kirby/router.php',
-				'@php -S localhost:8000 kirby/router.php'
-			],
-			// keeps a start script that is already correct
-			[
-				'@php -S localhost:8000 kirby/router.php',
-				'@php -S localhost:8000 kirby/router.php'
-			],
-			// commands that start no server are left alone
-			[
-				'Composer\Config::disableProcessTimeout',
-				null
-			],
-		];
+		$this->cwd = getcwd();
+	}
+
+	protected function tearDown(): void
+	{
+		if ($this->cwd !== null) {
+			chdir($this->cwd);
+			$this->cwd = null;
+		}
+
+		parent::tearDown();
 	}
 
 	public function testArgs(): void
@@ -58,12 +42,6 @@ class RootFolderTest extends TestCase
 	{
 		$cli = $this->createCLI();
 		$this->assertNull(RootFolderProxy::documentRoot($cli));
-	}
-
-	#[DataProvider('startCommandProvider')]
-	public function testUpdateStartCommand(string $command, string|null $expected): void
-	{
-		$this->assertSame($expected, RootFolderProxy::updateStartCommand($command, null));
 	}
 
 	public function testUpdateComposerConfig(): void
@@ -103,18 +81,40 @@ class RootFolderTest extends TestCase
 		$this->assertOutputContains('The composer.json has been updated');
 	}
 
-	protected function setUp(): void
+	public static function startCommandProvider(): array
 	{
-		$this->cwd = getcwd();
+		return [
+			// removes the document root from the start script
+			[
+				'@php -S localhost:8000 -t public kirby/router.php',
+				'@php -S localhost:8000 kirby/router.php'
+			],
+			// removes any other document root as well
+			[
+				'@php -S localhost:8000 -t public_html kirby/router.php',
+				'@php -S localhost:8000 kirby/router.php'
+			],
+			// no matter where it sits in the command
+			[
+				'@php -t public -S localhost:8000 kirby/router.php',
+				'@php -S localhost:8000 kirby/router.php'
+			],
+			// keeps a start script that is already correct
+			[
+				'@php -S localhost:8000 kirby/router.php',
+				'@php -S localhost:8000 kirby/router.php'
+			],
+			// commands that start no server are left alone
+			[
+				'Composer\Config::disableProcessTimeout',
+				null
+			],
+		];
 	}
 
-	protected function tearDown(): void
+	#[DataProvider('startCommandProvider')]
+	public function testUpdateStartCommand(string $command, string|null $expected): void
 	{
-		if ($this->cwd !== null) {
-			chdir($this->cwd);
-			$this->cwd = null;
-		}
-
-		parent::tearDown();
+		$this->assertSame($expected, RootFolderProxy::updateStartCommand($command, null));
 	}
 }

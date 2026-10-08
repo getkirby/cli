@@ -11,11 +11,6 @@ use Kirby\Uuid\Uuid;
 
 class Duplicates extends Command
 {
-	public static function description(): string
-	{
-		return 'Find and optionally fix duplicate UUIDs';
-	}
-
 	public static function args(): array
 	{
 		return [
@@ -115,6 +110,11 @@ class Duplicates extends Command
 
 		$cli->out(count($duplicates) . ' duplicates! You can fix them with kirby uuid:duplicates --fix');
 		exit(1);
+	}
+
+	public static function description(): string
+	{
+		return 'Find and optionally fix duplicate UUIDs';
 	}
 
 	protected static function regenerate(ModelWithContent $model): void

@@ -13,40 +13,19 @@ class PublicFolderTest extends TestCase
 {
 	protected string|null $cwd = null;
 
-	public static function startCommandProvider(): array
+	protected function setUp(): void
 	{
-		return [
-			// adds the document root to the start script of the kits
-			[
-				'@php -S localhost:8000 kirby/router.php',
-				'@php -S localhost:8000 -t public kirby/router.php'
-			],
-			// keeps a start script that is already correct
-			[
-				'@php -S localhost:8000 -t public kirby/router.php',
-				'@php -S localhost:8000 -t public kirby/router.php'
-			],
-			// replaces a different document root
-			[
-				'@php -S localhost:8000 -t public_html kirby/router.php',
-				'@php -S localhost:8000 -t public kirby/router.php'
-			],
-			// moves the document root behind the host and port
-			[
-				'@php -t public_html -S localhost:8000 kirby/router.php',
-				'@php -S localhost:8000 -t public kirby/router.php'
-			],
-			// works with any host and port
-			[
-				'@php -S 0.0.0.0:3000 kirby/router.php',
-				'@php -S 0.0.0.0:3000 -t public kirby/router.php'
-			],
-			// commands that start no server are left alone
-			[
-				'Composer\Config::disableProcessTimeout',
-				null
-			],
-		];
+		$this->cwd = getcwd();
+	}
+
+	protected function tearDown(): void
+	{
+		if ($this->cwd !== null) {
+			chdir($this->cwd);
+			$this->cwd = null;
+		}
+
+		parent::tearDown();
 	}
 
 	public function testArgs(): void
@@ -63,12 +42,6 @@ class PublicFolderTest extends TestCase
 	{
 		$cli = $this->createCLI();
 		$this->assertSame('public', PublicFolderProxy::documentRoot($cli));
-	}
-
-	#[DataProvider('startCommandProvider')]
-	public function testUpdateStartCommand(string $command, string|null $expected): void
-	{
-		$this->assertSame($expected, PublicFolderProxy::updateStartCommand($command, 'public'));
 	}
 
 	public function testUpdateComposerConfig(): void
@@ -108,32 +81,18 @@ class PublicFolderTest extends TestCase
 		$this->assertOutputContains('The composer.json has been updated');
 	}
 
-	public function testUpdateComposerConfigWithStringScript(): void
+	public function testUpdateComposerConfigWithInvalidJson(): void
 	{
 		$cli = $this->createCLIWithKirby();
 		$this->setupOutputCapture();
 
 		chdir($root = $this->kirbyRoot());
 
-		$before = implode("\n", [
-			'{',
-			'    "scripts": {',
-			'        "start": "@php -S localhost:8000 kirby/router.php"',
-			'    }',
-			'}',
-			''
-		]);
-
-		file_put_contents($root . '/composer.json', $before);
+		file_put_contents($root . '/composer.json', '{');
 
 		PublicFolderProxy::updateComposerConfig($cli);
 
-		$composer = json_decode(file_get_contents($root . '/composer.json'), true);
-
-		$this->assertSame(
-			'@php -S localhost:8000 -t public kirby/router.php',
-			$composer['scripts']['start']
-		);
+		$this->assertOutputContains('The composer.json could not be parsed');
 	}
 
 	public function testUpdateComposerConfigWithoutChanges(): void
@@ -162,6 +121,19 @@ class PublicFolderTest extends TestCase
 		$this->assertOutputNotContains('The composer.json has been updated');
 	}
 
+	public function testUpdateComposerConfigWithoutFile(): void
+	{
+		$cli = $this->createCLI();
+		$this->setupOutputCapture();
+
+		// there is no composer.json in the test directory
+		chdir(__DIR__);
+
+		PublicFolderProxy::updateComposerConfig($cli);
+
+		$this->assertSame('', $this->getOutput());
+	}
+
 	public function testUpdateComposerConfigWithoutServerCommand(): void
 	{
 		$cli = $this->createCLIWithKirby();
@@ -186,45 +158,73 @@ class PublicFolderTest extends TestCase
 		$this->assertOutputContains('Please set the document root manually');
 	}
 
-	public function testUpdateComposerConfigWithInvalidJson(): void
+	public function testUpdateComposerConfigWithStringScript(): void
 	{
 		$cli = $this->createCLIWithKirby();
 		$this->setupOutputCapture();
 
 		chdir($root = $this->kirbyRoot());
 
-		file_put_contents($root . '/composer.json', '{');
+		$before = implode("\n", [
+			'{',
+			'    "scripts": {',
+			'        "start": "@php -S localhost:8000 kirby/router.php"',
+			'    }',
+			'}',
+			''
+		]);
+
+		file_put_contents($root . '/composer.json', $before);
 
 		PublicFolderProxy::updateComposerConfig($cli);
 
-		$this->assertOutputContains('The composer.json could not be parsed');
+		$composer = json_decode(file_get_contents($root . '/composer.json'), true);
+
+		$this->assertSame(
+			'@php -S localhost:8000 -t public kirby/router.php',
+			$composer['scripts']['start']
+		);
 	}
 
-	public function testUpdateComposerConfigWithoutFile(): void
+	public static function startCommandProvider(): array
 	{
-		$cli = $this->createCLI();
-		$this->setupOutputCapture();
-
-		// there is no composer.json in the test directory
-		chdir(__DIR__);
-
-		PublicFolderProxy::updateComposerConfig($cli);
-
-		$this->assertSame('', $this->getOutput());
+		return [
+			// adds the document root to the start script of the kits
+			[
+				'@php -S localhost:8000 kirby/router.php',
+				'@php -S localhost:8000 -t public kirby/router.php'
+			],
+			// keeps a start script that is already correct
+			[
+				'@php -S localhost:8000 -t public kirby/router.php',
+				'@php -S localhost:8000 -t public kirby/router.php'
+			],
+			// replaces a different document root
+			[
+				'@php -S localhost:8000 -t public_html kirby/router.php',
+				'@php -S localhost:8000 -t public kirby/router.php'
+			],
+			// moves the document root behind the host and port
+			[
+				'@php -t public_html -S localhost:8000 kirby/router.php',
+				'@php -S localhost:8000 -t public kirby/router.php'
+			],
+			// works with any host and port
+			[
+				'@php -S 0.0.0.0:3000 kirby/router.php',
+				'@php -S 0.0.0.0:3000 -t public kirby/router.php'
+			],
+			// commands that start no server are left alone
+			[
+				'Composer\Config::disableProcessTimeout',
+				null
+			],
+		];
 	}
 
-	protected function setUp(): void
+	#[DataProvider('startCommandProvider')]
+	public function testUpdateStartCommand(string $command, string|null $expected): void
 	{
-		$this->cwd = getcwd();
-	}
-
-	protected function tearDown(): void
-	{
-		if ($this->cwd !== null) {
-			chdir($this->cwd);
-			$this->cwd = null;
-		}
-
-		parent::tearDown();
+		$this->assertSame($expected, PublicFolderProxy::updateStartCommand($command, 'public'));
 	}
 }

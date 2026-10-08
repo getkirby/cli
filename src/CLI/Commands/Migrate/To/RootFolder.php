@@ -10,11 +10,6 @@ use Kirby\Filesystem\F;
 
 class RootFolder extends PublicFolder
 {
-	public static function description(): string
-	{
-		return 'Switch to a root folder setup';
-	}
-
 	public static function command(CLI $cli): void
 	{
 		$dir = $cli->dir();
@@ -46,6 +41,11 @@ class RootFolder extends PublicFolder
 
 		$cli->br();
 		$cli->success('Migrated to a root folder setup');
+	}
+
+	public static function description(): string
+	{
+		return 'Switch to a root folder setup';
 	}
 
 	/**
@@ -82,5 +82,4 @@ class RootFolder extends PublicFolder
 			$cli->out('🚨 The public directory could not been removed');
 		}
 	}
-
 }

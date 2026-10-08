@@ -117,11 +117,12 @@ class Content extends Command
 		}
 
 		// get the original field names
-		$contentFieldNames = array_keys($contentFields);
+		// (numeric field names are returned as int by array_keys)
+		$contentFieldNames = array_map(strval(...), array_keys($contentFields));
 
 		// get all field keys from blueprint (lowercase)
-		$blueprintFields = array_keys($item->blueprint()->fields());
-		$blueprintLower  = array_map('mb_strtolower', $blueprintFields);
+		$blueprintFields = array_map(strval(...), array_keys($item->blueprint()->fields()));
+		$blueprintLower  = array_map(mb_strtolower(...), $blueprintFields);
 
 		// find fields not in blueprint
 		$fieldsToDelete = [];

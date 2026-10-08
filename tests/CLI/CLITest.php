@@ -63,6 +63,12 @@ class CLITest extends TestCase
 
 		// absolute
 		$this->assertSame('/test', $cli->dir('/test'));
+
+		// an empty string is treated like a missing folder
+		$this->assertSame(__DIR__ . '/fixtures', $cli->dir(''));
+
+		// a folder named "0" is a folder, not a missing one
+		$this->assertSame('0', $cli->dir('0'));
 	}
 
 	/**

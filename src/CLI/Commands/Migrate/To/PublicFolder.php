@@ -12,11 +12,6 @@ use stdClass;
 
 class PublicFolder extends Command
 {
-	public static function description(): string
-	{
-		return 'Switch to a public folder setup';
-	}
-
 	public static function command(CLI $cli): void
 	{
 		$dir = $cli->dir();
@@ -51,6 +46,11 @@ class PublicFolder extends Command
 		$cli->br();
 	}
 
+	public static function description(): string
+	{
+		return 'Switch to a public folder setup';
+	}
+
 	/**
 	 * The document root that the built-in server has to
 	 * serve after the migration. Null if there is none.
@@ -60,11 +60,11 @@ class PublicFolder extends Command
 		return basename(static::publicDir($cli->dir()));
 	}
 
-	protected static function makeIndexPHP(CLI $cli, string $publicDir)
+	protected static function makeIndexPHP(CLI $cli, string $dir)
 	{
 		$template = $cli->root('commands.core') . '/migrate/to/_templates/index.public.simple.php';
 
-		$cli->make($publicDir . '/index.php', $template);
+		$cli->make($dir . '/index.php', $template);
 
 		$cli->out('✅ The index.php has been created');
 	}
@@ -307,5 +307,4 @@ class PublicFolder extends Command
 
 		return implode(' ', $parts);
 	}
-
 }

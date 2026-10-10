@@ -64,6 +64,7 @@ This should print the Kirby CLI version and a list of available commands
 - kirby make:user
 - kirby migrate:to:public-folder
 - kirby migrate:to:root-folder
+- kirby migrate:to:symfony-yaml
 - kirby plugin:install
 - kirby plugin:remove
 - kirby plugin:upgrade

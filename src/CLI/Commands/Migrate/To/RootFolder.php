@@ -37,6 +37,7 @@ class RootFolder extends PublicFolder
 
 		static::makeIndexPHP($cli, $dir);
 		static::removePublicDir($cli, $publicDir);
+		static::updateComposerConfig($cli);
 
 		$cli->br();
 		$cli->success('Migrated to a root folder setup');
@@ -45,6 +46,15 @@ class RootFolder extends PublicFolder
 	public static function description(): string
 	{
 		return 'Switch to a root folder setup';
+	}
+
+	/**
+	 * A root folder setup is served from the project
+	 * root, so the start script needs no document root
+	 */
+	protected static function documentRoot(CLI $cli): string|null
+	{
+		return null;
 	}
 
 	protected static function makeIndexPHP(CLI $cli, string $dir)

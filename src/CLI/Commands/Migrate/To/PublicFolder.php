@@ -50,27 +50,22 @@ class PublicFolder extends Command
 		return 'Switch to a public folder setup';
 	}
 
-	protected static function updateComposerConfig(CLI $cli): void
+	/**
+	 * The document root that the built-in server has to
+	 * serve after the migration. Null if there is none.
+	 */
+	protected static function documentRoot(CLI $cli): string|null
 	{
-		$file = $cli->dir() . '/composer.json';
+		return basename(static::publicDir($cli->dir()));
+	}
 
-		if (is_file($file) === false) {
-			return;
-		}
-
-		$composer = json_decode(F::read($file), true);
-		$start    = $composer['scripts']['start'] ?? null;
-
-		if (is_array($start) === true) {
-			foreach ($start as $key => $command) {
-				if (str_contains($command, '-S localhost:8000') === true && str_contains($command, '-t public') === false) {
-					$composer['scripts']['start'][$key] = str_replace('-S localhost:8000', '-S localhost:8000 -t public', $command);
-				}
-			}
-
-			F::write($file, $cli->json($composer));
-			$cli->out('✅ The composer.json has been updated');
-		}
+	/**
+	 * Encodes a command as a JSON string the way
+	 * it is usually written in the composer.json
+	 */
+	protected static function encodeCommand(string $command): string
+	{
+		return json_encode($command, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 	}
 
 	protected static function makeIndexPHP(CLI $cli, string $dir)
@@ -193,5 +188,132 @@ class PublicFolder extends Command
 		} else {
 			$cli->out('🚨 The old index.php could not been removed');
 		}
+	}
+
+	/**
+	 * Points the start script in the composer.json
+	 * at the document root of the new setup
+	 */
+	protected static function updateComposerConfig(CLI $cli): void
+	{
+		$file = $cli->dir() . '/composer.json';
+
+		if (is_file($file) === false) {
+			return;
+		}
+
+		$contents = F::read($file);
+
+		if (is_string($contents) === false) {
+			$cli->out('🚨 The composer.json could not be read');
+			return;
+		}
+
+		$composer = json_decode($contents, true);
+
+		if (is_array($composer) === false) {
+			$cli->out('🚨 The composer.json could not be parsed');
+			return;
+		}
+
+		$start = $composer['scripts']['start'] ?? null;
+
+		if ($start === null) {
+			return;
+		}
+
+		// the start script can be a single command or a list of commands
+		$commands = is_string($start) === true ? [$start] : $start;
+
+		if (is_array($commands) === false) {
+			return;
+		}
+
+		$root    = static::documentRoot($cli);
+		$json    = $contents;
+		$server  = false;
+		$updated = false;
+
+		foreach ($commands as $command) {
+			if (is_string($command) === false) {
+				continue;
+			}
+
+			$new = static::updateStartCommand($command, $root);
+
+			// the command does not start a server
+			if ($new === null) {
+				continue;
+			}
+
+			$server = true;
+
+			if ($new === $command) {
+				continue;
+			}
+
+			$updated = true;
+
+			// replace the command in the raw file
+			// to keep its original formatting
+			$json = str_replace(
+				static::encodeCommand($command),
+				static::encodeCommand($new),
+				$json
+			);
+		}
+
+		// there is no server command or it could not be found in
+		// the raw file, e.g. because it is encoded differently
+		if ($server === false || ($updated === true && $json === $contents)) {
+			$cli->out('🚨 The start script in the composer.json could not be updated. Please set the document root manually.');
+			return;
+		}
+
+		// the start script already serves the right document root
+		if ($updated === false) {
+			return;
+		}
+
+		if (F::write($file, $json) === true) {
+			$cli->out('✅ The composer.json has been updated');
+		} else {
+			$cli->out('🚨 The composer.json could not be updated');
+		}
+	}
+
+	/**
+	 * Sets the document root of a command that starts the
+	 * built-in server, or removes it if there is no document
+	 * root. Returns null if the command starts no server.
+	 */
+	protected static function updateStartCommand(
+		string $command,
+		string|null $root
+	): string|null {
+		$parts = preg_split('!\s+!', trim($command)) ?: [];
+
+		// only the built-in server takes a document root
+		if (in_array('-S', $parts, true) === false) {
+			return null;
+		}
+
+		// remove the current document root
+		$target = array_search('-t', $parts, true);
+
+		if ($target !== false) {
+			array_splice($parts, $target, 2);
+		}
+
+		// add the new document root right after the host and port
+		if ($root !== null) {
+			$server = array_search('-S', $parts, true);
+
+			if ($server !== false) {
+				array_splice($parts, $server + 2, 0, ['-t', $root]);
+			}
+		}
+
+		return implode(' ', $parts);
 	}
 }

@@ -22,6 +22,7 @@
 		<UndefinedClass>
 			<errorLevel type="suppress">
 				<referencedClass name="Kirby\Cms\*" />
+				<referencedClass name="Kirby\Content\*" />
 				<referencedClass name="Kirby\Data\*" />
 				<referencedClass name="Kirby\Exception\*" />
 				<referencedClass name="Kirby\Filesystem\*" />

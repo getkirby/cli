@@ -22,7 +22,7 @@ runs:
   steps:
     - name: Setup PHP cache environment
       id: php-cache
-      uses: shivammathur/cache-extensions@de3c642a5fce0ef91581a1c9831e229f525196d6 # pin@1.15.1
+      uses: shivammathur/cache-extensions@04303762ce7e9a04b12c6dc5d8cd41e3e7b4950d # pin@1.15.10
       with:
         php-version: ${{ inputs.php }}
         extensions: ${{ inputs.extensions }}

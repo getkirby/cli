@@ -44,7 +44,7 @@ class Install extends Command
 			$url = $archiveUrl . '/refs/tags/' . $cli->arg('version') . '.zip';
 		}
 
-		list($vendor, $plugin) = explode('/', $repo);
+		[$vendor, $plugin] = explode('/', $repo);
 
 		$zip = $cli->dir() . '/' . $vendor . '-' . $plugin . '-' . time() . '.zip';
 		$dir = $cli->kirby()->root('plugins') . '/' . $plugin;

@@ -10,7 +10,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(Help::class)]
 class HelpTest extends TestCase
 {
-	public function setUp(): void
+	protected function setUp(): void
 	{
 		// Change to Fixtures directory for consistent command discovery
 		chdir(__DIR__ . '/../fixtures');

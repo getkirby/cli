@@ -33,8 +33,6 @@ function bootstrap(): string|null
  * Returns the absolute path
  * to the Kirby index.php if it
  * can be found
- *
- * @return string|null
  */
 function index(): string|null
 {

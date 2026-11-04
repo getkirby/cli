@@ -10,11 +10,6 @@ use Kirby\Filesystem\F;
 
 class RootFolder extends PublicFolder
 {
-	public static function description(): string
-	{
-		return 'Switch to a root folder setup';
-	}
-
 	public static function command(CLI $cli): void
 	{
 		$dir = $cli->dir();
@@ -42,9 +37,24 @@ class RootFolder extends PublicFolder
 
 		static::makeIndexPHP($cli, $dir);
 		static::removePublicDir($cli, $publicDir);
+		static::updateComposerConfig($cli);
 
 		$cli->br();
 		$cli->success('Migrated to a root folder setup');
+	}
+
+	public static function description(): string
+	{
+		return 'Switch to a root folder setup';
+	}
+
+	/**
+	 * A root folder setup is served from the project
+	 * root, so the start script needs no document root
+	 */
+	protected static function documentRoot(CLI $cli): string|null
+	{
+		return null;
 	}
 
 	protected static function makeIndexPHP(CLI $cli, string $dir)
@@ -72,5 +82,4 @@ class RootFolder extends PublicFolder
 			$cli->out('🚨 The public directory could not been removed');
 		}
 	}
-
 }

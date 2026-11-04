@@ -17,7 +17,9 @@ updates:
     open-pull-requests-limit: 30
 
   - package-ecosystem: "github-actions"
-    directory: "/"
+    directories:
+      - "/"
+      - "/.github/actions/*"
     target-branch: "develop"
     schedule:
       interval: "weekly"

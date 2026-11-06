@@ -190,7 +190,7 @@ class KirbyInstallation
 	protected function ensureBaseDir(): void
 	{
 		if (static::$baseDir === null) {
-			static::$baseDir = sys_get_temp_dir() . '/kirby-cli-cache';
+			static::$baseDir = dirname(__DIR__) . '/tmp/kirby-cache';
 			if (is_dir(static::$baseDir) === false) {
 				mkdir(static::$baseDir, 0755, true);
 			}

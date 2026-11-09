@@ -104,6 +104,40 @@ class SymfonyYamlTest extends TestCase
 		], $this->call('blueprintFiles', $kirby));
 	}
 
+	public function testCheckOtherFields(): void
+	{
+		$cli = $this->createCLIWithKirby(content: [
+			'yaml-other/yaml-other.txt' => "Title: Release: 2024-01-01\n\n----\n\nText:\n\n- 2024-01-01\n\n----\n\nPlugin:\n\n- 2024-02-01\n\n----\n\nMeta:\n\n- \n  date: 2024-03-01\n",
+		]);
+
+		$this->blueprint('yaml-other', "title: Other\nfields:\n  text:\n    type: textarea\n  plugin:\n    type: entrylist\n");
+
+		// a plugin field type that stores YAML
+		$kirby = $cli->kirby()->clone([
+			'fields' => [
+				'entrylist' => $cli->kirby()->core()->fields()['entries']
+			]
+		]);
+
+		// the cloned app registers its own error handlers
+		restore_error_handler();
+		restore_exception_handler();
+
+		$cli = $this->createCLI($kirby);
+		$this->setupOutputCapture();
+
+		$this->assertSame(1, $this->call('checkOtherFields', $cli, $kirby));
+
+		$this->assertOutputContains('content/yaml-other/yaml-other.txt');
+		$this->assertOutputContains('  plugin.0: "2024-02-01" → 1706745600');
+		$this->assertOutputContains('  meta.0.date: "2024-03-01" → 1709251200');
+		$this->assertOutputContains('Check them by hand');
+
+		// core fields and plain text are skipped
+		$this->assertOutputNotContains('text.0');
+		$this->assertOutputNotContains('title');
+	}
+
 	public function testCommand(): void
 	{
 		$cli = $this->createCLIWithKirby();
@@ -174,6 +208,21 @@ class SymfonyYamlTest extends TestCase
 
 		// nothing has been converted
 		$this->assertSame(static::EVENTS, file_get_contents($this->kirbyRoot() . '/content/yaml-events/yaml-events.txt'));
+	}
+
+	public function testCommandWithOtherFields(): void
+	{
+		$cli = $this->createCLIWithKirby(content: [
+			'yaml-meta/yaml-meta.txt' => "Title: Meta\n\n----\n\nMeta:\n\n- \n  date: 2024-03-01\n",
+		]);
+		$this->setupOutputCapture();
+
+		SymfonyYaml::command($cli);
+
+		$this->assertOutputContains('All content is ready for Symfony YAML');
+		$this->assertOutputContains('  meta.0.date: "2024-03-01" → 1709251200');
+		$this->assertOutputContains('Check them by hand');
+		$this->assertOutputNotContains('Your site is ready for Symfony YAML');
 	}
 
 	public function testConvertContent(): void

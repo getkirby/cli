@@ -208,6 +208,68 @@ class SymfonyYaml extends Command
 		return $files;
 	}
 
+	/**
+	 * Lists the YAML in fields from plugins and in fields
+	 * that are not in the blueprint, which Spyc and Symfony YAML
+	 * read differently; such fields might not store YAML at all,
+	 * so they are not converted and need to be checked by hand
+	 *
+	 * Returns the number of content files with such fields
+	 */
+	protected static function checkOtherFields(CLI $cli, App $kirby): int
+	{
+		$count = 0;
+
+		foreach ($kirby->models() as $model) {
+			$names   = static::coreFields($model);
+			$storage = $model->storage();
+
+			foreach ($storage->all() as $versionId => $language) {
+				$lines = [];
+
+				foreach ($storage->read($versionId, $language) as $name => $value) {
+					$name = (string)$name;
+
+					if (
+						is_string($value) === false ||
+						in_array(strtolower($name), $names, true) === true ||
+						static::isSpycArray($value) === false
+					) {
+						continue;
+					}
+
+					$lines = [...$lines, ...static::needsConversion($value, $name)];
+				}
+
+				if ($lines === []) {
+					continue;
+				}
+
+				if ($count === 0) {
+					$cli->br();
+					$cli->bold('Other fields');
+					$cli->br();
+				}
+
+				static::report(
+					$cli,
+					static::contentFile($cli, $model, $versionId, $language),
+					$lines,
+					limit: 5
+				);
+
+				$count++;
+			}
+		}
+
+		if ($count > 0) {
+			$cli->br();
+			$cli->out('⚠️ These fields are from plugins or not in a blueprint, so they have not been converted. Check them by hand.');
+		}
+
+		return $count;
+	}
+
 	public static function command(CLI $cli): void
 	{
 		$kirby  = $cli->kirby();
@@ -239,12 +301,16 @@ class SymfonyYaml extends Command
 			}
 		}
 
+		$others = static::checkOtherFields($cli, $kirby);
+
 		if ($blueprints['issues'] > 0 || $content !== []) {
 			throw new Exception('The migration to Symfony YAML is not complete yet');
 		}
 
-		$cli->br();
-		$cli->success('Your site is ready for Symfony YAML');
+		if ($others === 0) {
+			$cli->br();
+			$cli->success('Your site is ready for Symfony YAML');
+		}
 	}
 
 	/**
@@ -374,6 +440,24 @@ class SymfonyYaml extends Command
 		return $failed;
 	}
 
+	/**
+	 * Returns the lowercase names of all fields
+	 * in the blueprint that Kirby itself provides
+	 */
+	protected static function coreFields(ModelWithContent $model): array
+	{
+		$types = $model->kirby()->core()->fields();
+		$names = [];
+
+		foreach ($model->blueprint()->fields() as $name => $field) {
+			if (array_key_exists($field['type'] ?? '', $types) === true) {
+				$names[] = strtolower((string)$name);
+			}
+		}
+
+		return $names;
+	}
+
 	public static function description(): string
 	{
 		return 'Checks blueprints and converts content from Spyc to Symfony YAML';
@@ -456,6 +540,23 @@ class SymfonyYaml extends Command
 		}
 
 		return $json;
+	}
+
+	/**
+	 * Checks if the value looks like an array that
+	 * Kirby has stored with Spyc and not like plain text
+	 */
+	protected static function isSpycArray(string $value): bool
+	{
+		// single-line values are most likely plain text, e.g. titles
+		if (
+			str_starts_with($value, '-') === false &&
+			str_contains($value, "\n") === false
+		) {
+			return false;
+		}
+
+		return trim(YamlSpyc::encode(YamlSpyc::decode($value))) === trim($value);
 	}
 
 	/**

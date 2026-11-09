@@ -421,7 +421,14 @@ class SymfonyYaml extends Command
 		$spyc    = is_string($spyc) === true ? trim($spyc) : $spyc;
 		$symfony = is_string($symfony) === true ? trim($symfony) : $symfony;
 
-		if ($spyc == $symfony) {
+		// compare booleans strictly, as `true == "yes"` would hide
+		// that Spyc reads `yes` as `true` but Symfony YAML does not
+		$equal = match (true) {
+			is_bool($spyc), is_bool($symfony) => $spyc === $symfony,
+			default                           => $spyc == $symfony
+		};
+
+		if ($equal === true) {
 			return [];
 		}
 

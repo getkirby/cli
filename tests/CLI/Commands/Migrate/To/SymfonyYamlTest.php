@@ -207,6 +207,19 @@ class SymfonyYamlTest extends TestCase
 		$this->assertSame('Checks blueprints and converts content from Spyc to Symfony YAML', SymfonyYaml::description());
 	}
 
+	public function testDiffWithBooleans(): void
+	{
+		$this->kirby();
+
+		$yaml = "fields:\n  hasHeadline:\n    type: radio\n    options:\n      - yes\n      - no\n  headline:\n    when:\n      hasHeadline: yes\n";
+
+		$this->assertSame([
+			'fields.hasHeadline.options.0: true → "yes"',
+			'fields.hasHeadline.options.1: false → "no"',
+			'fields.headline.when.hasHeadline: true → "yes"',
+		], $this->call('diff', $yaml));
+	}
+
 	public function testNeedsConversion(): void
 	{
 		$this->kirby();

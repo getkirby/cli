@@ -325,6 +325,12 @@ class SymfonyYaml extends Command
 				continue;
 			}
 
+			// Spyc misreads such YAML, so
+			// converting it would break the content
+			if (static::usesSymfonySyntax($value) === true) {
+				throw new Exception('The "' . $name . '" field contains YAML that only Symfony YAML can read and needs to be fixed by hand');
+			}
+
 			$data      = YamlSpyc::decode($value);
 			$converted = YamlSymfony::encode($data);
 
@@ -453,17 +459,25 @@ class SymfonyYaml extends Command
 	}
 
 	/**
-	 * Checks if Symfony YAML would write the YAML exactly
-	 * like this, i.e. it has already been converted or
-	 * saved with Symfony YAML
+	 * Checks if the YAML has been written for Symfony YAML,
+	 * i.e. Symfony YAML would write it exactly like this
+	 * or it uses syntax that only Symfony YAML can read
 	 */
 	protected static function isSymfonyYaml(string $yaml): bool
 	{
 		try {
-			return trim(YamlSymfony::encode(YamlSymfony::decode($yaml))) === trim($yaml);
+			$data = YamlSymfony::decode($yaml);
 		} catch (Throwable) {
 			return false;
 		}
+
+		// hand edits might keep the YAML from matching
+		// what Symfony YAML would write exactly
+		if (static::usesSymfonySyntax($yaml) === true) {
+			return true;
+		}
+
+		return trim(YamlSymfony::encode($data)) === trim($yaml);
 	}
 
 	/**
@@ -531,6 +545,17 @@ class SymfonyYaml extends Command
 		if ($limit !== null && count($lines) > $limit) {
 			$cli->out('  … and ' . (count($lines) - $limit) . ' more');
 		}
+	}
+
+	/**
+	 * Checks if the YAML uses block scalars with a chomping
+	 * or indentation indicator (e.g. `|-` or `|2`), which
+	 * Symfony YAML writes for multi-line strings but Spyc
+	 * misreads as lists
+	 */
+	protected static function usesSymfonySyntax(string $yaml): bool
+	{
+		return preg_match('/[:-][ \t]+[|>]([1-9][+-]?|[+-][1-9]?)[ \t]*$/m', $yaml) === 1;
 	}
 
 	/**

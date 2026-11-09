@@ -202,6 +202,29 @@ class SymfonyYamlTest extends TestCase
 		$this->assertSame([], $this->call('checkContent', $cli, $cli->kirby()));
 	}
 
+	public function testConvertContentWithSymfonySyntax(): void
+	{
+		// Symfony YAML cannot read the handle, Spyc misreads the text
+		$content = "Title: Notes\n\n----\n\nNotes:\n\n-\n  text: |-\n    line 1\n    line 2\n  handle: @kirby\n";
+
+		$cli = $this->createCLIWithKirby(content: [
+			'yaml-notes/yaml-notes.txt' => $content,
+		]);
+
+		$this->blueprint('yaml-notes', "title: Notes\nfields:\n  notes:\n    type: structure\n    fields:\n      text:\n        type: textarea\n      handle:\n        type: text\n");
+		$this->setupOutputCapture();
+
+		$files = $this->call('checkContent', $cli, $cli->kirby());
+		$this->assertCount(1, $files);
+
+		$failed = $this->call('convertContent', $cli, $files);
+		$this->assertSame($files, $failed);
+		$this->assertOutputContains('The "notes" field contains YAML that only Symfony YAML can read');
+
+		// nothing has been converted
+		$this->assertSame($content, file_get_contents($this->kirbyRoot() . '/content/yaml-notes/yaml-notes.txt'));
+	}
+
 	public function testDescription(): void
 	{
 		$this->assertSame('Checks blueprints and converts content from Spyc to Symfony YAML', SymfonyYaml::description());
@@ -249,6 +272,13 @@ class SymfonyYamlTest extends TestCase
 
 		$this->assertNotSame([], $this->call('diff', $yaml, 'text'));
 		$this->assertSame([], $this->call('needsConversion', $yaml, 'text'));
+
+		// a hand edit keeps the YAML from matching Symfony YAML's output
+		$yaml = YamlSymfony::encode([['text' => "line 1\nline 2", 'quote' => "it's"]]);
+		$yaml = str_replace('quote: "it\'s"', "quote: it's", $yaml);
+
+		$this->assertNotSame(trim($yaml), trim(YamlSymfony::encode(YamlSymfony::decode($yaml))));
+		$this->assertSame([], $this->call('needsConversion', $yaml, 'text'));
 	}
 
 	public function testPath(): void
@@ -258,5 +288,23 @@ class SymfonyYamlTest extends TestCase
 
 		$this->assertSame('site/blueprints/site.yml', $this->call('path', $cli, $file));
 		$this->assertSame('/var/www/site.yml', $this->call('path', $cli, '/var/www/site.yml'));
+	}
+
+	public function testUsesSymfonySyntax(): void
+	{
+		$this->kirby();
+
+		// block scalars that Symfony YAML writes
+		foreach (["a\nb", "a\nb\n\n", "  a\nb", "  a\nb\n"] as $text) {
+			$yaml = YamlSymfony::encode([['text' => $text]]);
+			$this->assertTrue($this->call('usesSymfonySyntax', $yaml), $yaml);
+		}
+
+		$this->assertTrue($this->call('usesSymfonySyntax', "- >-\n  a\n  b"));
+
+		// block scalars that Spyc can read
+		$this->assertFalse($this->call('usesSymfonySyntax', YamlSpyc::encode([['text' => "a\nb"]])));
+		$this->assertFalse($this->call('usesSymfonySyntax', "text: >\n  a\n  b"));
+		$this->assertFalse($this->call('usesSymfonySyntax', 'title: a |- b'));
 	}
 }

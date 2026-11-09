@@ -92,7 +92,7 @@ class SymfonyYaml extends Command
 			}
 		}
 
-		$core = realpath($kirby->root('kirby')) . '/';
+		$core = realpath($kirby->root('kirby')) . DIRECTORY_SEPARATOR;
 		$yaml = [];
 
 		foreach ($files as $file) {
@@ -484,11 +484,13 @@ class SymfonyYaml extends Command
 	}
 
 	/**
-	 * Returns the path relative to the working directory
+	 * Returns the path relative to the working directory,
+	 * with forward slashes on Windows as well
 	 */
 	protected static function path(CLI $cli, string $file): string
 	{
-		$dir = $cli->dir() . '/';
+		$file = str_replace(DIRECTORY_SEPARATOR, '/', $file);
+		$dir  = str_replace(DIRECTORY_SEPARATOR, '/', $cli->dir()) . '/';
 
 		if (str_starts_with($file, $dir) === true) {
 			return substr($file, strlen($dir));

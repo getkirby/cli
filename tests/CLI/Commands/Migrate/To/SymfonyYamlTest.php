@@ -237,4 +237,13 @@ class SymfonyYamlTest extends TestCase
 		$this->assertNotSame([], $this->call('diff', $yaml, 'text'));
 		$this->assertSame([], $this->call('needsConversion', $yaml, 'text'));
 	}
+
+	public function testPath(): void
+	{
+		$cli  = $this->createCLI();
+		$file = $cli->dir() . DIRECTORY_SEPARATOR . 'site' . DIRECTORY_SEPARATOR . 'blueprints/site.yml';
+
+		$this->assertSame('site/blueprints/site.yml', $this->call('path', $cli, $file));
+		$this->assertSame('/var/www/site.yml', $this->call('path', $cli, '/var/www/site.yml'));
+	}
 }

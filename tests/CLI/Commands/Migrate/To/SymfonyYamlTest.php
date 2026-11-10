@@ -8,6 +8,7 @@ use ErrorException;
 use Exception;
 use Kirby\CLI\TestableCLI;
 use Kirby\CLI\TestCase;
+use Kirby\Cms\Blueprint;
 use Kirby\Data\YamlSpyc;
 use Kirby\Data\YamlSymfony;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -57,6 +58,18 @@ class SymfonyYamlTest extends TestCase
 		$cli->climate()->arguments->parse(['kirby', '--dry-run']);
 
 		return $cli;
+	}
+
+	protected function tearDown(): void
+	{
+		// Kirby caches the loaded blueprints by name, also across
+		// app instances, but the tests write different blueprints
+		// with the same name
+		if (class_exists(Blueprint::class, false) === true) {
+			Blueprint::$loaded = [];
+		}
+
+		parent::tearDown();
 	}
 
 	public function testArgs(): void

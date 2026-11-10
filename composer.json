@@ -36,7 +36,10 @@
 				"src/",
 				"tests/"
 			]
-		}
+		},
+		"exclude-from-classmap": [
+			"tests/tmp/"
+		]
 	},
 	"bin": [
 		"bin/kirby"

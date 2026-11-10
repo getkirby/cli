@@ -197,7 +197,10 @@ class CLI
 				continue;
 			}
 
-			$path = preg_replace('!^' . preg_quote($directory) . '\/!', '', $item->getPathname());
+			// relative path with forward slashes,
+			// also on Windows with its backslashes
+			$path = substr($item->getPathname(), strlen($directory) + 1);
+			$path = str_replace(DIRECTORY_SEPARATOR, '/', $path);
 			$path = preg_replace('!.php$!', '', $path);
 
 			if (str_contains($path, '_templates') === true) {

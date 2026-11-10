@@ -7,10 +7,25 @@ namespace Kirby\CLI;
 use Exception;
 use League\CLImate\CLImate;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 
 #[CoversClass(CLI::class)]
 class CLITest extends TestCase
 {
+	/**
+	 * Creates a CLI instance that behaves
+	 * like it runs inside a web request
+	 */
+	protected function createCLIOutsideCli(): CLI
+	{
+		return new class () extends CLI {
+			protected function isCli(): bool
+			{
+				return false;
+			}
+		};
+	}
+
 	/**
 	 * Runs the CLI binary in a separate process,
 	 * because a failing command ends the process
@@ -46,6 +61,19 @@ class CLITest extends TestCase
 	{
 		[$status] = $this->runBinary('test');
 		$this->assertSame(0, $status);
+	}
+
+	// a separate process, because the failing command
+	// would otherwise end the test run if this breaks
+	#[RunInSeparateProcess]
+	public function testCommandOutsideCli(): void
+	{
+		$cli = $this->createCLIOutsideCli();
+
+		$this->expectException(Exception::class);
+		$this->expectExceptionMessage('Something went wrong');
+
+		$cli::command('fail');
 	}
 
 	public function testCommandsInDirectory(): void
@@ -236,6 +264,14 @@ class CLITest extends TestCase
 		$this->assertArrayHasKey('commands.core', $roots);
 		$this->assertArrayHasKey('commands.local', $roots);
 		$this->assertArrayHasKey('commands.global', $roots);
+	}
+
+	public function testRunOutsideCli(): void
+	{
+		$cli = $this->createCLIOutsideCli();
+		$cli->run('test');
+
+		$this->assertInstanceOf(QuietWriter::class, $cli->climate()->output->get('quiet'));
 	}
 
 	public function testTemplate(): void

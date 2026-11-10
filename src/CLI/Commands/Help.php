@@ -80,8 +80,13 @@ class Help extends Command
 	 */
 	protected static function raw(CLI $cli, array $commands): void
 	{
-		foreach (array_unique(array_merge(...array_values($commands))) as $command) {
-			$cli->out($command);
+		// the same name always runs the same command,
+		// no matter in how many groups it shows up
+		$names = array_unique(array_merge(...array_values($commands)));
+		sort($names);
+
+		foreach ($names as $name) {
+			$cli->out($name);
 		}
 	}
 }

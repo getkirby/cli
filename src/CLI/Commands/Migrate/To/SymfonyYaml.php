@@ -682,7 +682,10 @@ class SymfonyYaml extends Command
 	 */
 	protected static function readsSpyc(): bool
 	{
-		return in_array(Yaml::handler(), [null, 'symfony'], true) === false;
+		// Kirby 5 only uses Symfony YAML for `symfony` and Kirby 6 only
+		// uses Spyc for `spyc`, so ask Kirby how it reads YAML instead
+		// of checking the option: only Spyc reads `yes` as `true`
+		return Yaml::decode('spyc: yes') === ['spyc' => true];
 	}
 
 	protected static function report(

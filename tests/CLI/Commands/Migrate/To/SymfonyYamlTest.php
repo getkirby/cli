@@ -470,6 +470,21 @@ class SymfonyYamlTest extends TestCase
 		$this->assertSame('/var/www/site.yml', $this->call('path', $cli, '/var/www/site.yml'));
 	}
 
+	public function testReadsSpyc(): void
+	{
+		$kirby = $this->kirby();
+
+		foreach (['spyc' => true, 'symfony' => false] as $handler => $expected) {
+			$kirby->clone(['options' => ['yaml.handler' => $handler]]);
+
+			// the cloned app registers its own error handlers
+			restore_error_handler();
+			restore_exception_handler();
+
+			$this->assertSame($expected, $this->call('readsSpyc'), $handler);
+		}
+	}
+
 	public function testUsesSymfonySyntax(): void
 	{
 		$this->kirby();

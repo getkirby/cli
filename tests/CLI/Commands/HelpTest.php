@@ -20,10 +20,10 @@ class HelpTest extends TestCase
 	{
 		$args = Help::args();
 
-		$this->assertArrayHasKey('plain', $args);
-		$this->assertSame('plain', $args['plain']['longPrefix']);
-		$this->assertSame('Prints only the command names, one per line', $args['plain']['description']);
-		$this->assertTrue($args['plain']['noValue']);
+		$this->assertArrayHasKey('raw', $args);
+		$this->assertSame('raw', $args['raw']['longPrefix']);
+		$this->assertSame('Prints only the command names, one per line', $args['raw']['description']);
+		$this->assertTrue($args['raw']['noValue']);
 	}
 
 	public function testCommand(): void
@@ -38,11 +38,11 @@ class HelpTest extends TestCase
 		$this->assertOutputContains('Have fun with the Kirby CLI!');
 	}
 
-	public function testCommandPlain(): void
+	public function testCommandRaw(): void
 	{
 		$cli = $this->createCLI();
 		$cli->climate()->arguments->add(Help::args());
-		$cli->climate()->arguments->parse(['kirby', '--plain']);
+		$cli->climate()->arguments->parse(['kirby', '--raw']);
 		$this->setupOutputCapture();
 
 		Help::command($cli);

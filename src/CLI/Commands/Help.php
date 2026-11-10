@@ -12,8 +12,8 @@ class Help extends Command
 	public static function args(): array
 	{
 		return [
-			'plain' => [
-				'longPrefix'  => 'plain',
+			'raw' => [
+				'longPrefix'  => 'raw',
 				'description' => 'Prints only the command names, one per line',
 				'noValue'     => true
 			]
@@ -24,8 +24,8 @@ class Help extends Command
 	{
 		$commands = $cli->commands();
 
-		if ($cli->arg('plain') === true) {
-			static::plain($cli, $commands);
+		if ($cli->arg('raw') === true) {
+			static::raw($cli, $commands);
 			return;
 		}
 
@@ -76,9 +76,9 @@ class Help extends Command
 
 	/**
 	 * Prints all command names without any formatting,
-	 * e.g. to be used for shell completions
+	 * e.g. to be used in scripts
 	 */
-	protected static function plain(CLI $cli, array $commands): void
+	protected static function raw(CLI $cli, array $commands): void
 	{
 		foreach (array_unique(array_merge(...array_values($commands))) as $command) {
 			$cli->out($command);

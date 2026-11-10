@@ -132,7 +132,7 @@ class SymfonyYaml extends Command
 
 		foreach (static::blueprintFiles($kirby) as $file) {
 			try {
-				$lines = static::diff((string)file_get_contents($file));
+				$lines = static::diff((string)file_get_contents($file), blueprint: true);
 			} catch (Throwable $e) {
 				$lines = [$e->getMessage()];
 				$errors++;
@@ -288,13 +288,15 @@ class SymfonyYaml extends Command
 			$cli->br();
 
 			if (static::readsSpyc() === true) {
-				$cli->out('💡 Kirby still reads YAML with Spyc. Run the command again after the update to Kirby 6 to convert these content files. If you have set the yaml.handler option to spyc, remove it first.');
+				// once Kirby reads the content with Symfony YAML,
+				// saving it in the Panel would store what Symfony YAML
+				// misreads, which the command could not detect anymore
+				$cli->out('💡 Kirby still reads YAML with Spyc. Once all blueprints are ready, set the yaml.handler option to symfony and run the command again right away to convert these content files, before anyone edits them in the Panel.');
 			} elseif ($blueprints['errors'] > 0) {
 				$cli->out('💡 Fix the blueprints first and run the command again. Kirby cannot load blueprints with errors, so this list of content files might be incomplete.');
 			} elseif ($dryrun === true) {
 				$cli->out('💡 Run the command without --dry-run to convert these content files.');
-			} else {
-				$cli->confirmToContinue('Convert the YAML in these content files to Symfony YAML? Make sure that you have a backup of your content.');
+			} elseif ($cli->confirm('Convert the YAML in these content files to Symfony YAML? Make sure that you have a backup of your content.')->confirmed() === true) {
 				$cli->br();
 
 				$content = static::convertContent($cli, $content);
@@ -468,21 +470,27 @@ class SymfonyYaml extends Command
 	 * Returns a line for each value that Spyc
 	 * and Symfony YAML read differently
 	 *
+	 * @param $blueprint Ignores the differences that do not matter in blueprints
 	 * @throws Throwable If Symfony YAML cannot read the YAML
 	 */
-	protected static function diff(string $yaml, string|null $path = null): array
-	{
+	protected static function diff(
+		string $yaml,
+		string|null $path = null,
+		bool $blueprint = false
+	): array {
 		return static::differences(
 			YamlSpyc::decode($yaml),
 			YamlSymfony::decode($yaml),
-			$path
+			$path,
+			$blueprint
 		);
 	}
 
 	protected static function differences(
 		mixed $spyc,
 		mixed $symfony,
-		string|null $path
+		string|null $path,
+		bool $blueprint = false
 	): array {
 		if (
 			is_array($spyc) === true &&
@@ -500,7 +508,8 @@ class SymfonyYaml extends Command
 					...static::differences(
 						$spyc[$key] ?? null,
 						$symfony[$key] ?? null,
-						$path === null ? (string)$key : $path . '.' . $key
+						$path === null ? (string)$key : $path . '.' . $key,
+						$blueprint
 					)
 				];
 			}
@@ -508,16 +517,28 @@ class SymfonyYaml extends Command
 			return $lines;
 		}
 
-		// ignore trailing line breaks in multi-line strings
-		$spyc    = is_string($spyc) === true ? trim($spyc) : $spyc;
-		$symfony = is_string($symfony) === true ? trim($symfony) : $symfony;
+		if ($blueprint === false) {
+			// compare strictly, as any difference changes the content,
+			// e.g. the trailing line break that Symfony YAML reads
+			// in the multi-line strings that Spyc has written
+			$equal = $spyc === $symfony;
+		} elseif (static::misreadsBlockScalars($spyc, $symfony) === true) {
+			// Spyc misreads block scalars with a chomping or indentation
+			// indicator (e.g. `|-`) as lists, while Symfony YAML reads
+			// the multi-line string that the blueprint has been written for
+			$equal = true;
+		} else {
+			// ignore trailing line breaks in multi-line strings
+			$spyc    = is_string($spyc) === true ? trim($spyc) : $spyc;
+			$symfony = is_string($symfony) === true ? trim($symfony) : $symfony;
 
-		// compare booleans strictly, as `true == "yes"` would hide
-		// that Spyc reads `yes` as `true` but Symfony YAML does not
-		$equal = match (true) {
-			is_bool($spyc), is_bool($symfony) => $spyc === $symfony,
-			default                           => $spyc == $symfony
-		};
+			// compare booleans strictly, as `true == "yes"` would hide
+			// that Spyc reads `yes` as `true` but Symfony YAML does not
+			$equal = match (true) {
+				is_bool($spyc), is_bool($symfony) => $spyc === $symfony,
+				default                           => $spyc == $symfony
+			};
+		}
 
 		if ($equal === true) {
 			return [];
@@ -661,7 +682,10 @@ class SymfonyYaml extends Command
 	 */
 	protected static function readsSpyc(): bool
 	{
-		return in_array(Yaml::handler(), [null, 'symfony'], true) === false;
+		// Kirby 5 only uses Symfony YAML for `symfony` and Kirby 6 only
+		// uses Spyc for `spyc`, so ask Kirby how it reads YAML instead
+		// of checking the option: only Spyc reads `yes` as `true`
+		return Yaml::decode('spyc: yes') === ['spyc' => true];
 	}
 
 	protected static function report(

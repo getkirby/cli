@@ -8,6 +8,7 @@ use ErrorException;
 use Exception;
 use Kirby\CLI\TestableCLI;
 use Kirby\CLI\TestCase;
+use Kirby\Cms\Blueprint;
 use Kirby\Data\YamlSpyc;
 use Kirby\Data\YamlSymfony;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -33,7 +34,8 @@ class SymfonyYamlTest extends TestCase
 
 	protected function createCLIWithIssues(
 		bool $errors = true,
-		array $options = []
+		array $options = [],
+		bool $dryrun = true
 	): TestableCLI {
 		$cli = $this->createCLIWithKirby(content: [
 			'yaml-events/yaml-events.txt' => static::EVENTS,
@@ -54,9 +56,21 @@ class SymfonyYamlTest extends TestCase
 		}
 
 		$cli->climate()->arguments->add(SymfonyYaml::args());
-		$cli->climate()->arguments->parse(['kirby', '--dry-run']);
+		$cli->climate()->arguments->parse($dryrun === true ? ['kirby', '--dry-run'] : ['kirby']);
 
 		return $cli;
+	}
+
+	protected function tearDown(): void
+	{
+		// Kirby caches the loaded blueprints by name, also across
+		// app instances, but the tests write different blueprints
+		// with the same name
+		if (class_exists(Blueprint::class, false) === true) {
+			Blueprint::$loaded = [];
+		}
+
+		parent::tearDown();
 	}
 
 	public function testArgs(): void
@@ -151,6 +165,32 @@ class SymfonyYamlTest extends TestCase
 		$this->assertOutputContains('Your site is ready for Symfony YAML');
 	}
 
+	public function testCommandWithConversion(): void
+	{
+		$cli = $this->createCLIWithIssues(
+			errors: false,
+			options: ['yaml.handler' => 'symfony'],
+			dryrun: false
+		);
+		$cli->answers = ['y'];
+		$this->setupOutputCapture();
+
+		try {
+			SymfonyYaml::command($cli);
+			$this->fail('The command should fail');
+		} catch (Exception $e) {
+			// the blueprint with `translate: no` has to be fixed by hand
+			$this->assertSame('The migration to Symfony YAML is not complete yet', $e->getMessage());
+		}
+
+		$this->assertOutputContains('Convert the YAML in these content files to Symfony YAML?');
+		$this->assertMatchesRegularExpression('!✅ .*/content/yaml-events/yaml-events\.txt!', $this->getOutput());
+		$this->assertMatchesRegularExpression('!✅ .*/content/yaml-team/yaml-team\.txt!', $this->getOutput());
+
+		$this->assertStringContainsString("date: '2024-01-01'", file_get_contents($this->kirbyRoot() . '/content/yaml-events/yaml-events.txt'));
+		$this->assertStringContainsString("handle: '@kirby'", file_get_contents($this->kirbyRoot() . '/content/yaml-team/yaml-team.txt'));
+	}
+
 	public function testCommandWithDryRun(): void
 	{
 		$cli = $this->createCLIWithIssues(
@@ -226,6 +266,30 @@ class SymfonyYamlTest extends TestCase
 		$this->assertOutputNotContains('Your site is ready for Symfony YAML');
 	}
 
+	public function testCommandWithoutConfirmation(): void
+	{
+		$cli = $this->createCLIWithIssues(
+			errors: false,
+			options: ['yaml.handler' => 'symfony'],
+			dryrun: false
+		);
+		$cli->answers = ['n'];
+		$this->setupOutputCapture();
+
+		// the command fails instead of exiting successfully
+		try {
+			SymfonyYaml::command($cli);
+			$this->fail('The command should fail');
+		} catch (Exception $e) {
+			$this->assertSame('The migration to Symfony YAML is not complete yet', $e->getMessage());
+		}
+
+		// nothing has been converted
+		$this->assertOutputNotContains('✅ ');
+		$this->assertSame(static::EVENTS, file_get_contents($this->kirbyRoot() . '/content/yaml-events/yaml-events.txt'));
+		$this->assertSame(static::TEAM, file_get_contents($this->kirbyRoot() . '/content/yaml-team/yaml-team.txt'));
+	}
+
 	public function testConvertContent(): void
 	{
 		$cli = $this->createCLIWithIssues();
@@ -278,6 +342,27 @@ class SymfonyYamlTest extends TestCase
 	public function testDescription(): void
 	{
 		$this->assertSame('Checks blueprints and converts content from Spyc to Symfony YAML', SymfonyYaml::description());
+	}
+
+	public function testDiffForBlueprints(): void
+	{
+		$this->kirby();
+
+		$yaml = "fields:\n  text:\n    type: textarea\n    help: |-\n      line 1\n      line 2\n  info:\n    type: info\n    text: |\n      line 1\n      line 2\n  featured:\n    type: toggle\n    translate: no\n";
+
+		// Spyc misreads the `|-` block scalar as a list,
+		// the trailing line break of `|` does not matter
+		$this->assertSame(
+			['fields.featured.translate: false → "no"'],
+			$this->call('diff', $yaml, null, true)
+		);
+
+		// in content, both change the value
+		$this->assertSame([
+			'fields.text.help: ["line 1","line 2"] → "line 1\nline 2"',
+			'fields.info.text: "line 1\nline 2" → "line 1\nline 2\n"',
+			'fields.featured.translate: false → "no"',
+		], $this->call('diff', $yaml));
 	}
 
 	public function testDiffWithBooleans(): void
@@ -339,6 +424,14 @@ class SymfonyYamlTest extends TestCase
 			['dates.0.date: "2024-01-01" → 1704067200'],
 			$this->call('needsConversion', "- \n  date: 2024-01-01\n  text: |\n    Nice place\n    Rating: >4", 'dates')
 		);
+
+		// Symfony YAML reads multi-line strings from Spyc
+		// with a trailing line break, unless they end the
+		// field, as Kirby trims the values in content files
+		$this->assertSame(
+			['notes.0.text: "line 1\nline 2" → "line 1\nline 2\n"'],
+			$this->call('needsConversion', trim(YamlSpyc::encode([['text' => "line 1\nline 2", 'title' => 'Note']])), 'notes')
+		);
 	}
 
 	public function testNeedsConversionWithSymfonyYaml(): void
@@ -357,6 +450,15 @@ class SymfonyYamlTest extends TestCase
 
 		$this->assertNotSame(trim($yaml), trim(YamlSymfony::encode(YamlSymfony::decode($yaml))));
 		$this->assertSame([], $this->call('needsConversion', $yaml, 'text'));
+
+		// YAML that Spyc and Symfony YAML would both write exactly
+		// like this but read differently counts as Symfony YAML,
+		// which Kirby reads after the migration
+		$yaml = trim(YamlSpyc::encode(['path' => "It's C:\\temp", 'text' => "line 1\nline 2", 'title' => 'Info']));
+
+		$this->assertSame($yaml, trim(YamlSymfony::encode(YamlSymfony::decode($yaml))));
+		$this->assertNotSame([], $this->call('diff', $yaml, 'info'));
+		$this->assertSame([], $this->call('needsConversion', $yaml, 'info'));
 	}
 
 	public function testPath(): void
@@ -366,6 +468,21 @@ class SymfonyYamlTest extends TestCase
 
 		$this->assertSame('site/blueprints/site.yml', $this->call('path', $cli, $file));
 		$this->assertSame('/var/www/site.yml', $this->call('path', $cli, '/var/www/site.yml'));
+	}
+
+	public function testReadsSpyc(): void
+	{
+		$kirby = $this->kirby();
+
+		foreach (['spyc' => true, 'symfony' => false] as $handler => $expected) {
+			$kirby->clone(['options' => ['yaml.handler' => $handler]]);
+
+			// the cloned app registers its own error handlers
+			restore_error_handler();
+			restore_exception_handler();
+
+			$this->assertSame($expected, $this->call('readsSpyc'), $handler);
+		}
 	}
 
 	public function testUsesSymfonySyntax(): void

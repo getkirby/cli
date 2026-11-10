@@ -132,7 +132,7 @@ class SymfonyYaml extends Command
 
 		foreach (static::blueprintFiles($kirby) as $file) {
 			try {
-				$lines = static::diff((string)file_get_contents($file));
+				$lines = static::diff((string)file_get_contents($file), blueprint: true);
 			} catch (Throwable $e) {
 				$lines = [$e->getMessage()];
 				$errors++;
@@ -468,21 +468,27 @@ class SymfonyYaml extends Command
 	 * Returns a line for each value that Spyc
 	 * and Symfony YAML read differently
 	 *
+	 * @param $blueprint Ignores the differences that do not matter in blueprints
 	 * @throws Throwable If Symfony YAML cannot read the YAML
 	 */
-	protected static function diff(string $yaml, string|null $path = null): array
-	{
+	protected static function diff(
+		string $yaml,
+		string|null $path = null,
+		bool $blueprint = false
+	): array {
 		return static::differences(
 			YamlSpyc::decode($yaml),
 			YamlSymfony::decode($yaml),
-			$path
+			$path,
+			$blueprint
 		);
 	}
 
 	protected static function differences(
 		mixed $spyc,
 		mixed $symfony,
-		string|null $path
+		string|null $path,
+		bool $blueprint = false
 	): array {
 		if (
 			is_array($spyc) === true &&
@@ -500,7 +506,8 @@ class SymfonyYaml extends Command
 					...static::differences(
 						$spyc[$key] ?? null,
 						$symfony[$key] ?? null,
-						$path === null ? (string)$key : $path . '.' . $key
+						$path === null ? (string)$key : $path . '.' . $key,
+						$blueprint
 					)
 				];
 			}
@@ -508,16 +515,23 @@ class SymfonyYaml extends Command
 			return $lines;
 		}
 
-		// ignore trailing line breaks in multi-line strings
-		$spyc    = is_string($spyc) === true ? trim($spyc) : $spyc;
-		$symfony = is_string($symfony) === true ? trim($symfony) : $symfony;
+		if ($blueprint === false) {
+			// compare strictly, as any difference changes the content,
+			// e.g. the trailing line break that Symfony YAML reads
+			// in the multi-line strings that Spyc has written
+			$equal = $spyc === $symfony;
+		} else {
+			// ignore trailing line breaks in multi-line strings
+			$spyc    = is_string($spyc) === true ? trim($spyc) : $spyc;
+			$symfony = is_string($symfony) === true ? trim($symfony) : $symfony;
 
-		// compare booleans strictly, as `true == "yes"` would hide
-		// that Spyc reads `yes` as `true` but Symfony YAML does not
-		$equal = match (true) {
-			is_bool($spyc), is_bool($symfony) => $spyc === $symfony,
-			default                           => $spyc == $symfony
-		};
+			// compare booleans strictly, as `true == "yes"` would hide
+			// that Spyc reads `yes` as `true` but Symfony YAML does not
+			$equal = match (true) {
+				is_bool($spyc), is_bool($symfony) => $spyc === $symfony,
+				default                           => $spyc == $symfony
+			};
+		}
 
 		if ($equal === true) {
 			return [];

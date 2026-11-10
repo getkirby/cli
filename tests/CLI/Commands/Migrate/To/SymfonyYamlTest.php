@@ -293,6 +293,25 @@ class SymfonyYamlTest extends TestCase
 		$this->assertSame('Checks blueprints and converts content from Spyc to Symfony YAML', SymfonyYaml::description());
 	}
 
+	public function testDiffForBlueprints(): void
+	{
+		$this->kirby();
+
+		$yaml = "fields:\n  info:\n    type: info\n    text: |\n      line 1\n      line 2\n  featured:\n    type: toggle\n    translate: no\n";
+
+		// the trailing line break of `|` does not matter
+		$this->assertSame(
+			['fields.featured.translate: false → "no"'],
+			$this->call('diff', $yaml, null, true)
+		);
+
+		// in content, it changes the value
+		$this->assertSame([
+			'fields.info.text: "line 1\nline 2" → "line 1\nline 2\n"',
+			'fields.featured.translate: false → "no"',
+		], $this->call('diff', $yaml));
+	}
+
 	public function testDiffWithBooleans(): void
 	{
 		$this->kirby();
@@ -352,6 +371,14 @@ class SymfonyYamlTest extends TestCase
 			['dates.0.date: "2024-01-01" → 1704067200'],
 			$this->call('needsConversion', "- \n  date: 2024-01-01\n  text: |\n    Nice place\n    Rating: >4", 'dates')
 		);
+
+		// Symfony YAML reads multi-line strings from Spyc
+		// with a trailing line break, unless they end the
+		// field, as Kirby trims the values in content files
+		$this->assertSame(
+			['notes.0.text: "line 1\nline 2" → "line 1\nline 2\n"'],
+			$this->call('needsConversion', trim(YamlSpyc::encode([['text' => "line 1\nline 2", 'title' => 'Note']])), 'notes')
+		);
 	}
 
 	public function testNeedsConversionWithSymfonyYaml(): void
@@ -370,6 +397,15 @@ class SymfonyYamlTest extends TestCase
 
 		$this->assertNotSame(trim($yaml), trim(YamlSymfony::encode(YamlSymfony::decode($yaml))));
 		$this->assertSame([], $this->call('needsConversion', $yaml, 'text'));
+
+		// YAML that Spyc and Symfony YAML would both write exactly
+		// like this but read differently counts as Symfony YAML,
+		// which Kirby reads after the migration
+		$yaml = trim(YamlSpyc::encode(['path' => "It's C:\\temp", 'text' => "line 1\nline 2", 'title' => 'Info']));
+
+		$this->assertSame($yaml, trim(YamlSymfony::encode(YamlSymfony::decode($yaml))));
+		$this->assertNotSame([], $this->call('diff', $yaml, 'info'));
+		$this->assertSame([], $this->call('needsConversion', $yaml, 'info'));
 	}
 
 	public function testPath(): void

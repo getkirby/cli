@@ -288,7 +288,10 @@ class SymfonyYaml extends Command
 			$cli->br();
 
 			if (static::readsSpyc() === true) {
-				$cli->out('💡 Kirby still reads YAML with Spyc. Run the command again after the update to Kirby 6 to convert these content files. If you have set the yaml.handler option to spyc, remove it first.');
+				// once Kirby reads the content with Symfony YAML,
+				// saving it in the Panel would store what Symfony YAML
+				// misreads, which the command could not detect anymore
+				$cli->out('💡 Kirby still reads YAML with Spyc. Once all blueprints are ready, set the yaml.handler option to symfony and run the command again right away to convert these content files, before anyone edits them in the Panel.');
 			} elseif ($blueprints['errors'] > 0) {
 				$cli->out('💡 Fix the blueprints first and run the command again. Kirby cannot load blueprints with errors, so this list of content files might be incomplete.');
 			} elseif ($dryrun === true) {

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Kirby\CLI\Commands\Migrate\To;
 
+use ErrorException;
 use Exception;
 use Kirby\CLI\TestableCLI;
 use Kirby\CLI\TestCase;
@@ -290,6 +291,28 @@ class SymfonyYamlTest extends TestCase
 			'fields.hasHeadline.options.1: false → "no"',
 			'fields.headline.when.hasHeadline: true → "yes"',
 		], $this->call('diff', $yaml));
+	}
+
+	public function testIsSpycArray(): void
+	{
+		$this->kirby();
+
+		$this->assertTrue($this->call('isSpycArray', "- \n  date: 2024-01-01"));
+		$this->assertTrue($this->call('isSpycArray', '- page://abc'));
+
+		// plain text
+		$this->assertFalse($this->call('isSpycArray', 'Kirby: The CMS'));
+		$this->assertFalse($this->call('isSpycArray', "# Heading\n\nSome text: here"));
+
+		// Spyc emits warnings for some plain text, which
+		// Kirby's error handler turns into exceptions
+		set_error_handler(fn (int $level, string $message) => throw new ErrorException($message));
+
+		try {
+			$this->assertFalse($this->call('isSpycArray', "| a | b |\n|---|---|\n| 1 | 2 |"));
+		} finally {
+			restore_error_handler();
+		}
 	}
 
 	public function testNeedsConversion(): void

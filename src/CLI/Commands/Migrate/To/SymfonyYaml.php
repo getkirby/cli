@@ -556,7 +556,13 @@ class SymfonyYaml extends Command
 			return false;
 		}
 
-		return trim(YamlSpyc::encode(YamlSpyc::decode($value))) === trim($value);
+		// Spyc emits warnings for some plain text,
+		// which Kirby's error handler turns into exceptions
+		try {
+			return trim(YamlSpyc::encode(YamlSpyc::decode($value))) === trim($value);
+		} catch (Throwable) {
+			return false;
+		}
 	}
 
 	/**

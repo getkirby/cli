@@ -72,6 +72,15 @@ class HelpTest extends TestCase
 		$this->assertOutputNotContains('Have fun with the Kirby CLI!');
 	}
 
+	public function testCommandRawWithCommandsInSeveralGroups(): void
+	{
+		// the custom commands are global commands as well
+		$cli   = $this->createCLI(roots: ['commands.global' => __DIR__ . '/../fixtures/commands']);
+		$lines = $this->rawOutput($cli);
+
+		$this->assertSame(['test'], array_values(array_filter($lines, fn ($line) => $line === 'test')));
+	}
+
 	public function testCommandShowsCoreCommands(): void
 	{
 		$cli = $this->createCLI();

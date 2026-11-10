@@ -92,7 +92,7 @@ class SymfonyYaml extends Command
 			}
 		}
 
-		$core = realpath($kirby->root('kirby')) . '/';
+		$core = realpath($kirby->root('kirby')) . DIRECTORY_SEPARATOR;
 		$yaml = [];
 
 		foreach ($files as $file) {
@@ -208,6 +208,68 @@ class SymfonyYaml extends Command
 		return $files;
 	}
 
+	/**
+	 * Lists the YAML in fields from plugins and in fields
+	 * that are not in the blueprint, which Spyc and Symfony YAML
+	 * read differently; such fields might not store YAML at all,
+	 * so they are not converted and need to be checked by hand
+	 *
+	 * Returns the number of content files with such fields
+	 */
+	protected static function checkOtherFields(CLI $cli, App $kirby): int
+	{
+		$count = 0;
+
+		foreach ($kirby->models() as $model) {
+			$names   = static::coreFields($model);
+			$storage = $model->storage();
+
+			foreach ($storage->all() as $versionId => $language) {
+				$lines = [];
+
+				foreach ($storage->read($versionId, $language) as $name => $value) {
+					$name = (string)$name;
+
+					if (
+						is_string($value) === false ||
+						in_array(strtolower($name), $names, true) === true ||
+						static::isSpycArray($value) === false
+					) {
+						continue;
+					}
+
+					$lines = [...$lines, ...static::needsConversion($value, $name)];
+				}
+
+				if ($lines === []) {
+					continue;
+				}
+
+				if ($count === 0) {
+					$cli->br();
+					$cli->bold('Other fields');
+					$cli->br();
+				}
+
+				static::report(
+					$cli,
+					static::contentFile($cli, $model, $versionId, $language),
+					$lines,
+					limit: 5
+				);
+
+				$count++;
+			}
+		}
+
+		if ($count > 0) {
+			$cli->br();
+			$cli->out('⚠️ These fields are from plugins or not in a blueprint, so they have not been converted. Check them by hand.');
+		}
+
+		return $count;
+	}
+
 	public static function command(CLI $cli): void
 	{
 		$kirby  = $cli->kirby();
@@ -239,12 +301,16 @@ class SymfonyYaml extends Command
 			}
 		}
 
+		$others = static::checkOtherFields($cli, $kirby);
+
 		if ($blueprints['issues'] > 0 || $content !== []) {
 			throw new Exception('The migration to Symfony YAML is not complete yet');
 		}
 
-		$cli->br();
-		$cli->success('Your site is ready for Symfony YAML');
+		if ($others === 0) {
+			$cli->br();
+			$cli->success('Your site is ready for Symfony YAML');
+		}
 	}
 
 	/**
@@ -325,6 +391,13 @@ class SymfonyYaml extends Command
 				continue;
 			}
 
+			// Spyc misreads such YAML; if Symfony YAML could read it,
+			// the field would have been skipped above, so it has
+			// to be fixed by hand instead of being converted
+			if (static::usesSymfonySyntax($value) === true) {
+				throw new Exception('The "' . $name . '" field contains YAML that only Symfony YAML can read and needs to be fixed by hand');
+			}
+
 			$data      = YamlSpyc::decode($value);
 			$converted = YamlSymfony::encode($data);
 
@@ -366,6 +439,24 @@ class SymfonyYaml extends Command
 		}
 
 		return $failed;
+	}
+
+	/**
+	 * Returns the lowercase names of all fields
+	 * in the blueprint that Kirby itself provides
+	 */
+	protected static function coreFields(ModelWithContent $model): array
+	{
+		$types = $model->kirby()->core()->fields();
+		$names = [];
+
+		foreach ($model->blueprint()->fields() as $name => $field) {
+			if (array_key_exists($field['type'] ?? '', $types) === true) {
+				$names[] = strtolower((string)$name);
+			}
+		}
+
+		return $names;
 	}
 
 	public static function description(): string
@@ -421,7 +512,14 @@ class SymfonyYaml extends Command
 		$spyc    = is_string($spyc) === true ? trim($spyc) : $spyc;
 		$symfony = is_string($symfony) === true ? trim($symfony) : $symfony;
 
-		if ($spyc == $symfony) {
+		// compare booleans strictly, as `true == "yes"` would hide
+		// that Spyc reads `yes` as `true` but Symfony YAML does not
+		$equal = match (true) {
+			is_bool($spyc), is_bool($symfony) => $spyc === $symfony,
+			default                           => $spyc == $symfony
+		};
+
+		if ($equal === true) {
 			return [];
 		}
 
@@ -446,17 +544,74 @@ class SymfonyYaml extends Command
 	}
 
 	/**
-	 * Checks if Symfony YAML would write the YAML exactly
-	 * like this, i.e. it has already been converted or
-	 * saved with Symfony YAML
+	 * Checks if the value looks like an array that
+	 * Kirby has stored with Spyc and not like plain text
+	 */
+	protected static function isSpycArray(string $value): bool
+	{
+		// single-line values are most likely plain text, e.g. titles
+		if (
+			str_starts_with($value, '-') === false &&
+			str_contains($value, "\n") === false
+		) {
+			return false;
+		}
+
+		// Spyc emits warnings for some plain text,
+		// which Kirby's error handler turns into exceptions
+		try {
+			return trim(YamlSpyc::encode(YamlSpyc::decode($value))) === trim($value);
+		} catch (Throwable) {
+			return false;
+		}
+	}
+
+	/**
+	 * Checks if the YAML has been written for Symfony YAML,
+	 * i.e. Symfony YAML would write it exactly like this
+	 * or it uses syntax that only Symfony YAML can read
 	 */
 	protected static function isSymfonyYaml(string $yaml): bool
 	{
 		try {
-			return trim(YamlSymfony::encode(YamlSymfony::decode($yaml))) === trim($yaml);
+			$spyc    = YamlSpyc::decode($yaml);
+			$symfony = YamlSymfony::decode($yaml);
 		} catch (Throwable) {
 			return false;
 		}
+
+		// hand edits might keep the YAML from matching
+		// what Symfony YAML would write exactly
+		if (static::misreadsBlockScalars($spyc, $symfony) === true) {
+			return true;
+		}
+
+		return trim(YamlSymfony::encode($symfony)) === trim($yaml);
+	}
+
+	/**
+	 * Checks if Spyc reads an array where Symfony YAML
+	 * reads a string, which is how Spyc misreads block
+	 * scalars with a chomping or indentation indicator
+	 * (e.g. `|-`) that Symfony YAML writes for multi-line strings
+	 */
+	protected static function misreadsBlockScalars(mixed $spyc, mixed $symfony): bool
+	{
+		if (is_array($spyc) === false) {
+			return false;
+		}
+
+		if (is_array($symfony) === false) {
+			return is_string($symfony);
+		}
+
+		foreach ($spyc as $key => $value) {
+			if (static::misreadsBlockScalars($value, $symfony[$key] ?? null) === true) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -484,11 +639,13 @@ class SymfonyYaml extends Command
 	}
 
 	/**
-	 * Returns the path relative to the working directory
+	 * Returns the path relative to the working directory,
+	 * with forward slashes on Windows as well
 	 */
 	protected static function path(CLI $cli, string $file): string
 	{
-		$dir = $cli->dir() . '/';
+		$file = str_replace(DIRECTORY_SEPARATOR, '/', $file);
+		$dir  = str_replace(DIRECTORY_SEPARATOR, '/', $cli->dir()) . '/';
 
 		if (str_starts_with($file, $dir) === true) {
 			return substr($file, strlen($dir));
@@ -522,6 +679,20 @@ class SymfonyYaml extends Command
 		if ($limit !== null && count($lines) > $limit) {
 			$cli->out('  … and ' . (count($lines) - $limit) . ' more');
 		}
+	}
+
+	/**
+	 * Checks if the YAML uses block scalars with a chomping
+	 * or indentation indicator (e.g. `|-` or `|2`), which
+	 * Symfony YAML writes for multi-line strings but Spyc
+	 * misreads as lists
+	 */
+	protected static function usesSymfonySyntax(string $yaml): bool
+	{
+		// the next line has to be indented further, so that lines
+		// in multi-line strings that only look like such a block
+		// scalar (e.g. `Rating: >4`) are not mistaken for one
+		return preg_match('/^([ \t]*+)[^\n]*[:-][ \t]+[|>]([1-9][+-]?|[+-][1-9]?)[ \t]*\n([ \t]*\n)*\1[ \t]/m', $yaml) === 1;
 	}
 
 	/**

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Kirby\CLI\Commands\Migrate\To;
 
+use ErrorException;
 use Exception;
 use Kirby\CLI\TestableCLI;
 use Kirby\CLI\TestCase;
@@ -104,6 +105,40 @@ class SymfonyYamlTest extends TestCase
 		], $this->call('blueprintFiles', $kirby));
 	}
 
+	public function testCheckOtherFields(): void
+	{
+		$cli = $this->createCLIWithKirby(content: [
+			'yaml-other/yaml-other.txt' => "Title: Release: 2024-01-01\n\n----\n\nText:\n\n- 2024-01-01\n\n----\n\nPlugin:\n\n- 2024-02-01\n\n----\n\nMeta:\n\n- \n  date: 2024-03-01\n",
+		]);
+
+		$this->blueprint('yaml-other', "title: Other\nfields:\n  text:\n    type: textarea\n  plugin:\n    type: entrylist\n");
+
+		// a plugin field type that stores YAML
+		$kirby = $cli->kirby()->clone([
+			'fields' => [
+				'entrylist' => $cli->kirby()->core()->fields()['entries']
+			]
+		]);
+
+		// the cloned app registers its own error handlers
+		restore_error_handler();
+		restore_exception_handler();
+
+		$cli = $this->createCLI($kirby);
+		$this->setupOutputCapture();
+
+		$this->assertSame(1, $this->call('checkOtherFields', $cli, $kirby));
+
+		$this->assertOutputContains('content/yaml-other/yaml-other.txt');
+		$this->assertOutputContains('  plugin.0: "2024-02-01" → 1706745600');
+		$this->assertOutputContains('  meta.0.date: "2024-03-01" → 1709251200');
+		$this->assertOutputContains('Check them by hand');
+
+		// core fields and plain text are skipped
+		$this->assertOutputNotContains('text.0');
+		$this->assertOutputNotContains('title');
+	}
+
 	public function testCommand(): void
 	{
 		$cli = $this->createCLIWithKirby();
@@ -176,6 +211,21 @@ class SymfonyYamlTest extends TestCase
 		$this->assertSame(static::EVENTS, file_get_contents($this->kirbyRoot() . '/content/yaml-events/yaml-events.txt'));
 	}
 
+	public function testCommandWithOtherFields(): void
+	{
+		$cli = $this->createCLIWithKirby(content: [
+			'yaml-meta/yaml-meta.txt' => "Title: Meta\n\n----\n\nMeta:\n\n- \n  date: 2024-03-01\n",
+		]);
+		$this->setupOutputCapture();
+
+		SymfonyYaml::command($cli);
+
+		$this->assertOutputContains('All content is ready for Symfony YAML');
+		$this->assertOutputContains('  meta.0.date: "2024-03-01" → 1709251200');
+		$this->assertOutputContains('Check them by hand');
+		$this->assertOutputNotContains('Your site is ready for Symfony YAML');
+	}
+
 	public function testConvertContent(): void
 	{
 		$cli = $this->createCLIWithIssues();
@@ -202,9 +252,67 @@ class SymfonyYamlTest extends TestCase
 		$this->assertSame([], $this->call('checkContent', $cli, $cli->kirby()));
 	}
 
+	public function testConvertContentWithSymfonySyntax(): void
+	{
+		// Symfony YAML cannot read the handle, Spyc misreads the text
+		$content = "Title: Notes\n\n----\n\nNotes:\n\n-\n  text: |-\n    line 1\n    line 2\n  handle: @kirby\n";
+
+		$cli = $this->createCLIWithKirby(content: [
+			'yaml-notes/yaml-notes.txt' => $content,
+		]);
+
+		$this->blueprint('yaml-notes', "title: Notes\nfields:\n  notes:\n    type: structure\n    fields:\n      text:\n        type: textarea\n      handle:\n        type: text\n");
+		$this->setupOutputCapture();
+
+		$files = $this->call('checkContent', $cli, $cli->kirby());
+		$this->assertCount(1, $files);
+
+		$failed = $this->call('convertContent', $cli, $files);
+		$this->assertSame($files, $failed);
+		$this->assertOutputContains('The "notes" field contains YAML that only Symfony YAML can read');
+
+		// nothing has been converted
+		$this->assertSame($content, file_get_contents($this->kirbyRoot() . '/content/yaml-notes/yaml-notes.txt'));
+	}
+
 	public function testDescription(): void
 	{
 		$this->assertSame('Checks blueprints and converts content from Spyc to Symfony YAML', SymfonyYaml::description());
+	}
+
+	public function testDiffWithBooleans(): void
+	{
+		$this->kirby();
+
+		$yaml = "fields:\n  hasHeadline:\n    type: radio\n    options:\n      - yes\n      - no\n  headline:\n    when:\n      hasHeadline: yes\n";
+
+		$this->assertSame([
+			'fields.hasHeadline.options.0: true → "yes"',
+			'fields.hasHeadline.options.1: false → "no"',
+			'fields.headline.when.hasHeadline: true → "yes"',
+		], $this->call('diff', $yaml));
+	}
+
+	public function testIsSpycArray(): void
+	{
+		$this->kirby();
+
+		$this->assertTrue($this->call('isSpycArray', "- \n  date: 2024-01-01"));
+		$this->assertTrue($this->call('isSpycArray', '- page://abc'));
+
+		// plain text
+		$this->assertFalse($this->call('isSpycArray', 'Kirby: The CMS'));
+		$this->assertFalse($this->call('isSpycArray', "# Heading\n\nSome text: here"));
+
+		// Spyc emits warnings for some plain text, which
+		// Kirby's error handler turns into exceptions
+		set_error_handler(fn (int $level, string $message) => throw new ErrorException($message));
+
+		try {
+			$this->assertFalse($this->call('isSpycArray', "| a | b |\n|---|---|\n| 1 | 2 |"));
+		} finally {
+			restore_error_handler();
+		}
 	}
 
 	public function testNeedsConversion(): void
@@ -225,6 +333,12 @@ class SymfonyYamlTest extends TestCase
 
 		// YAML that both read the same way
 		$this->assertSame([], $this->call('needsConversion', "- \n  title: Opening", 'dates'));
+
+		// a line in a multi-line string that only looks like a block scalar
+		$this->assertSame(
+			['dates.0.date: "2024-01-01" → 1704067200'],
+			$this->call('needsConversion', "- \n  date: 2024-01-01\n  text: |\n    Nice place\n    Rating: >4", 'dates')
+		);
 	}
 
 	public function testNeedsConversionWithSymfonyYaml(): void
@@ -236,5 +350,44 @@ class SymfonyYamlTest extends TestCase
 
 		$this->assertNotSame([], $this->call('diff', $yaml, 'text'));
 		$this->assertSame([], $this->call('needsConversion', $yaml, 'text'));
+
+		// a hand edit keeps the YAML from matching Symfony YAML's output
+		$yaml = YamlSymfony::encode([['text' => "line 1\nline 2", 'quote' => "it's"]]);
+		$yaml = str_replace('quote: "it\'s"', "quote: it's", $yaml);
+
+		$this->assertNotSame(trim($yaml), trim(YamlSymfony::encode(YamlSymfony::decode($yaml))));
+		$this->assertSame([], $this->call('needsConversion', $yaml, 'text'));
+	}
+
+	public function testPath(): void
+	{
+		$cli  = $this->createCLI();
+		$file = $cli->dir() . DIRECTORY_SEPARATOR . 'site' . DIRECTORY_SEPARATOR . 'blueprints/site.yml';
+
+		$this->assertSame('site/blueprints/site.yml', $this->call('path', $cli, $file));
+		$this->assertSame('/var/www/site.yml', $this->call('path', $cli, '/var/www/site.yml'));
+	}
+
+	public function testUsesSymfonySyntax(): void
+	{
+		$this->kirby();
+
+		// block scalars that Symfony YAML writes
+		foreach (["a\nb", "a\nb\n\n", "  a\nb", "  a\nb\n", "\na\nb"] as $text) {
+			$yaml = YamlSymfony::encode([['text' => $text]]);
+			$this->assertTrue($this->call('usesSymfonySyntax', $yaml), $yaml);
+		}
+
+		$this->assertTrue($this->call('usesSymfonySyntax', "- >-\n  a\n  b"));
+
+		// block scalars that Spyc can read
+		$this->assertFalse($this->call('usesSymfonySyntax', YamlSpyc::encode([['text' => "a\nb"]])));
+		$this->assertFalse($this->call('usesSymfonySyntax', "text: >\n  a\n  b"));
+		$this->assertFalse($this->call('usesSymfonySyntax', 'title: a |- b'));
+
+		// lines in multi-line strings that only look like block scalars
+		$this->assertFalse($this->call('usesSymfonySyntax', "text: |\n  Nice place\n  Rating: >4"));
+		$this->assertFalse($this->call('usesSymfonySyntax', "text: |\n  Rating: >4\n  Nice place"));
+		$this->assertFalse($this->call('usesSymfonySyntax', "- \n  sign: |-\n  date: 2024-01-01"));
 	}
 }

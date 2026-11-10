@@ -81,6 +81,12 @@ This should print the Kirby CLI version and a list of available commands
 - kirby version
 ```
 
+To get a list of all available command names, one per line (e.g. to use them in scripts), use the `--raw` option:
+
+```bash
+kirby help --raw
+```
+
 ## Writing commands
 
 You can create a new command via the CLI:

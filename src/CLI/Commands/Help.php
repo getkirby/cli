@@ -9,9 +9,25 @@ use Kirby\CLI\Command;
 
 class Help extends Command
 {
+	public static function args(): array
+	{
+		return [
+			'raw' => [
+				'longPrefix'  => 'raw',
+				'description' => 'Prints only the command names, one per line',
+				'noValue'     => true
+			]
+		];
+	}
+
 	public static function command(CLI $cli): void
 	{
 		$commands = $cli->commands();
+
+		if ($cli->arg('raw') === true) {
+			static::raw($cli, $commands);
+			return;
+		}
 
 		$cli->bold('Kirby CLI ' . $cli->version());
 		$cli->br();
@@ -56,5 +72,21 @@ class Help extends Command
 	public static function description(): string|null
 	{
 		return 'Prints help for the Kirby CLI';
+	}
+
+	/**
+	 * Prints all command names without any formatting,
+	 * e.g. to be used in scripts
+	 */
+	protected static function raw(CLI $cli, array $commands): void
+	{
+		// the same name always runs the same command,
+		// no matter in how many groups it shows up
+		$names = array_unique(array_merge(...array_values($commands)));
+		sort($names);
+
+		foreach ($names as $name) {
+			$cli->out($name);
+		}
 	}
 }

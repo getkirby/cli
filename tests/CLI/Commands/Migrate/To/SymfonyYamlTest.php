@@ -333,6 +333,12 @@ class SymfonyYamlTest extends TestCase
 
 		// YAML that both read the same way
 		$this->assertSame([], $this->call('needsConversion', "- \n  title: Opening", 'dates'));
+
+		// a line in a multi-line string that only looks like a block scalar
+		$this->assertSame(
+			['dates.0.date: "2024-01-01" → 1704067200'],
+			$this->call('needsConversion', "- \n  date: 2024-01-01\n  text: |\n    Nice place\n    Rating: >4", 'dates')
+		);
 	}
 
 	public function testNeedsConversionWithSymfonyYaml(): void
@@ -367,7 +373,7 @@ class SymfonyYamlTest extends TestCase
 		$this->kirby();
 
 		// block scalars that Symfony YAML writes
-		foreach (["a\nb", "a\nb\n\n", "  a\nb", "  a\nb\n"] as $text) {
+		foreach (["a\nb", "a\nb\n\n", "  a\nb", "  a\nb\n", "\na\nb"] as $text) {
 			$yaml = YamlSymfony::encode([['text' => $text]]);
 			$this->assertTrue($this->call('usesSymfonySyntax', $yaml), $yaml);
 		}
@@ -378,5 +384,10 @@ class SymfonyYamlTest extends TestCase
 		$this->assertFalse($this->call('usesSymfonySyntax', YamlSpyc::encode([['text' => "a\nb"]])));
 		$this->assertFalse($this->call('usesSymfonySyntax', "text: >\n  a\n  b"));
 		$this->assertFalse($this->call('usesSymfonySyntax', 'title: a |- b'));
+
+		// lines in multi-line strings that only look like block scalars
+		$this->assertFalse($this->call('usesSymfonySyntax', "text: |\n  Nice place\n  Rating: >4"));
+		$this->assertFalse($this->call('usesSymfonySyntax', "text: |\n  Rating: >4\n  Nice place"));
+		$this->assertFalse($this->call('usesSymfonySyntax', "- \n  sign: |-\n  date: 2024-01-01"));
 	}
 }

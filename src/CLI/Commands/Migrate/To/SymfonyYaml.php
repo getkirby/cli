@@ -391,8 +391,9 @@ class SymfonyYaml extends Command
 				continue;
 			}
 
-			// Spyc misreads such YAML, so
-			// converting it would break the content
+			// Spyc misreads such YAML; if Symfony YAML could read it,
+			// the field would have been skipped above, so it has
+			// to be fixed by hand instead of being converted
 			if (static::usesSymfonySyntax($value) === true) {
 				throw new Exception('The "' . $name . '" field contains YAML that only Symfony YAML can read and needs to be fixed by hand');
 			}
@@ -573,18 +574,44 @@ class SymfonyYaml extends Command
 	protected static function isSymfonyYaml(string $yaml): bool
 	{
 		try {
-			$data = YamlSymfony::decode($yaml);
+			$spyc    = YamlSpyc::decode($yaml);
+			$symfony = YamlSymfony::decode($yaml);
 		} catch (Throwable) {
 			return false;
 		}
 
 		// hand edits might keep the YAML from matching
 		// what Symfony YAML would write exactly
-		if (static::usesSymfonySyntax($yaml) === true) {
+		if (static::misreadsBlockScalars($spyc, $symfony) === true) {
 			return true;
 		}
 
-		return trim(YamlSymfony::encode($data)) === trim($yaml);
+		return trim(YamlSymfony::encode($symfony)) === trim($yaml);
+	}
+
+	/**
+	 * Checks if Spyc reads an array where Symfony YAML
+	 * reads a string, which is how Spyc misreads block
+	 * scalars with a chomping or indentation indicator
+	 * (e.g. `|-`) that Symfony YAML writes for multi-line strings
+	 */
+	protected static function misreadsBlockScalars(mixed $spyc, mixed $symfony): bool
+	{
+		if (is_array($spyc) === false) {
+			return false;
+		}
+
+		if (is_array($symfony) === false) {
+			return is_string($symfony);
+		}
+
+		foreach ($spyc as $key => $value) {
+			if (static::misreadsBlockScalars($value, $symfony[$key] ?? null) === true) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -662,7 +689,10 @@ class SymfonyYaml extends Command
 	 */
 	protected static function usesSymfonySyntax(string $yaml): bool
 	{
-		return preg_match('/[:-][ \t]+[|>]([1-9][+-]?|[+-][1-9]?)[ \t]*$/m', $yaml) === 1;
+		// the next line has to be indented further, so that lines
+		// in multi-line strings that only look like such a block
+		// scalar (e.g. `Rating: >4`) are not mistaken for one
+		return preg_match('/^([ \t]*+)[^\n]*[:-][ \t]+[|>]([1-9][+-]?|[+-][1-9]?)[ \t]*\n([ \t]*\n)*\1[ \t]/m', $yaml) === 1;
 	}
 
 	/**

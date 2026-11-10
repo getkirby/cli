@@ -18,7 +18,12 @@ class HelpTest extends TestCase
 
 	public function testArgs(): void
 	{
-		$this->assertSame([], Help::args());
+		$args = Help::args();
+
+		$this->assertArrayHasKey('plain', $args);
+		$this->assertSame('plain', $args['plain']['longPrefix']);
+		$this->assertSame('Prints only the command names, one per line', $args['plain']['description']);
+		$this->assertTrue($args['plain']['noValue']);
 	}
 
 	public function testCommand(): void
@@ -31,6 +36,26 @@ class HelpTest extends TestCase
 		$this->assertOutputContains('Kirby CLI');
 		$this->assertOutputContains('Core commands:');
 		$this->assertOutputContains('Have fun with the Kirby CLI!');
+	}
+
+	public function testCommandPlain(): void
+	{
+		$cli = $this->createCLI();
+		$cli->climate()->arguments->add(Help::args());
+		$cli->climate()->arguments->parse(['kirby', '--plain']);
+		$this->setupOutputCapture();
+
+		Help::command($cli);
+
+		$lines = explode(PHP_EOL, trim($this->getOutput()));
+
+		// core and custom commands, one name per line
+		$this->assertContains('help', $lines);
+		$this->assertContains('nested:command', $lines);
+
+		$this->assertOutputNotContains('kirby ');
+		$this->assertOutputNotContains('Core commands:');
+		$this->assertOutputNotContains('Have fun with the Kirby CLI!');
 	}
 
 	public function testCommandShowsCoreCommands(): void

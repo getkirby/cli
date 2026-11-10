@@ -297,16 +297,18 @@ class SymfonyYamlTest extends TestCase
 	{
 		$this->kirby();
 
-		$yaml = "fields:\n  info:\n    type: info\n    text: |\n      line 1\n      line 2\n  featured:\n    type: toggle\n    translate: no\n";
+		$yaml = "fields:\n  text:\n    type: textarea\n    help: |-\n      line 1\n      line 2\n  info:\n    type: info\n    text: |\n      line 1\n      line 2\n  featured:\n    type: toggle\n    translate: no\n";
 
+		// Spyc misreads the `|-` block scalar as a list,
 		// the trailing line break of `|` does not matter
 		$this->assertSame(
 			['fields.featured.translate: false → "no"'],
 			$this->call('diff', $yaml, null, true)
 		);
 
-		// in content, it changes the value
+		// in content, both change the value
 		$this->assertSame([
+			'fields.text.help: ["line 1","line 2"] → "line 1\nline 2"',
 			'fields.info.text: "line 1\nline 2" → "line 1\nline 2\n"',
 			'fields.featured.translate: false → "no"',
 		], $this->call('diff', $yaml));

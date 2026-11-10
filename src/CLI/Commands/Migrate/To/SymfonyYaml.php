@@ -520,6 +520,11 @@ class SymfonyYaml extends Command
 			// e.g. the trailing line break that Symfony YAML reads
 			// in the multi-line strings that Spyc has written
 			$equal = $spyc === $symfony;
+		} elseif (is_array($spyc) === true && is_string($symfony) === true) {
+			// Spyc misreads block scalars with a chomping or indentation
+			// indicator (e.g. `|-`) as lists, while Symfony YAML reads
+			// the multi-line string that the blueprint has been written for
+			$equal = true;
 		} else {
 			// ignore trailing line breaks in multi-line strings
 			$spyc    = is_string($spyc) === true ? trim($spyc) : $spyc;

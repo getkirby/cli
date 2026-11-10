@@ -381,8 +381,7 @@ class CLI
 	 */
 	protected function isCli(): bool
 	{
-		// the standard streams are only defined on the command line
-		return defined('STDOUT') === true;
+		return in_array(PHP_SAPI, ['cli', 'phpdbg'], true) === true;
 	}
 
 	/**

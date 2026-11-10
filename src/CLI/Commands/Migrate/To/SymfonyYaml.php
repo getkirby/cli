@@ -296,8 +296,7 @@ class SymfonyYaml extends Command
 				$cli->out('💡 Fix the blueprints first and run the command again. Kirby cannot load blueprints with errors, so this list of content files might be incomplete.');
 			} elseif ($dryrun === true) {
 				$cli->out('💡 Run the command without --dry-run to convert these content files.');
-			} else {
-				$cli->confirmToContinue('Convert the YAML in these content files to Symfony YAML? Make sure that you have a backup of your content.');
+			} elseif ($cli->confirm('Convert the YAML in these content files to Symfony YAML? Make sure that you have a backup of your content.')->confirmed() === true) {
 				$cli->br();
 
 				$content = static::convertContent($cli, $content);

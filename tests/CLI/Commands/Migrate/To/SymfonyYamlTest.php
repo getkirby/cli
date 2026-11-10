@@ -34,7 +34,8 @@ class SymfonyYamlTest extends TestCase
 
 	protected function createCLIWithIssues(
 		bool $errors = true,
-		array $options = []
+		array $options = [],
+		bool $dryrun = true
 	): TestableCLI {
 		$cli = $this->createCLIWithKirby(content: [
 			'yaml-events/yaml-events.txt' => static::EVENTS,
@@ -55,7 +56,7 @@ class SymfonyYamlTest extends TestCase
 		}
 
 		$cli->climate()->arguments->add(SymfonyYaml::args());
-		$cli->climate()->arguments->parse(['kirby', '--dry-run']);
+		$cli->climate()->arguments->parse($dryrun === true ? ['kirby', '--dry-run'] : ['kirby']);
 
 		return $cli;
 	}
@@ -164,6 +165,32 @@ class SymfonyYamlTest extends TestCase
 		$this->assertOutputContains('Your site is ready for Symfony YAML');
 	}
 
+	public function testCommandWithConversion(): void
+	{
+		$cli = $this->createCLIWithIssues(
+			errors: false,
+			options: ['yaml.handler' => 'symfony'],
+			dryrun: false
+		);
+		$cli->answers = ['y'];
+		$this->setupOutputCapture();
+
+		try {
+			SymfonyYaml::command($cli);
+			$this->fail('The command should fail');
+		} catch (Exception $e) {
+			// the blueprint with `translate: no` has to be fixed by hand
+			$this->assertSame('The migration to Symfony YAML is not complete yet', $e->getMessage());
+		}
+
+		$this->assertOutputContains('Convert the YAML in these content files to Symfony YAML?');
+		$this->assertMatchesRegularExpression('!✅ .*/content/yaml-events/yaml-events\.txt!', $this->getOutput());
+		$this->assertMatchesRegularExpression('!✅ .*/content/yaml-team/yaml-team\.txt!', $this->getOutput());
+
+		$this->assertStringContainsString("date: '2024-01-01'", file_get_contents($this->kirbyRoot() . '/content/yaml-events/yaml-events.txt'));
+		$this->assertStringContainsString("handle: '@kirby'", file_get_contents($this->kirbyRoot() . '/content/yaml-team/yaml-team.txt'));
+	}
+
 	public function testCommandWithDryRun(): void
 	{
 		$cli = $this->createCLIWithIssues(
@@ -237,6 +264,30 @@ class SymfonyYamlTest extends TestCase
 		$this->assertOutputContains('  meta.0.date: "2024-03-01" → 1709251200');
 		$this->assertOutputContains('Check them by hand');
 		$this->assertOutputNotContains('Your site is ready for Symfony YAML');
+	}
+
+	public function testCommandWithoutConfirmation(): void
+	{
+		$cli = $this->createCLIWithIssues(
+			errors: false,
+			options: ['yaml.handler' => 'symfony'],
+			dryrun: false
+		);
+		$cli->answers = ['n'];
+		$this->setupOutputCapture();
+
+		// the command fails instead of exiting successfully
+		try {
+			SymfonyYaml::command($cli);
+			$this->fail('The command should fail');
+		} catch (Exception $e) {
+			$this->assertSame('The migration to Symfony YAML is not complete yet', $e->getMessage());
+		}
+
+		// nothing has been converted
+		$this->assertOutputNotContains('✅ ');
+		$this->assertSame(static::EVENTS, file_get_contents($this->kirbyRoot() . '/content/yaml-events/yaml-events.txt'));
+		$this->assertSame(static::TEAM, file_get_contents($this->kirbyRoot() . '/content/yaml-team/yaml-team.txt'));
 	}
 
 	public function testConvertContent(): void

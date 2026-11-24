@@ -57,6 +57,7 @@ class Content extends Command
 		// don't update models that have changes
 		if ($item->version('changes')->exists($lang) === true) {
 			$cli->error('The ' . $item::CLASS_ALIAS . ' (' . $item->id() . ') has changes and cannot be cleaned. Save the changes and try again.');
+			return;
 		}
 
 		if ($dryrun === true) {

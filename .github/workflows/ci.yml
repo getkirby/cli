@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ["8.3", "8.4", "8.5"]
+        php: ["8.3", "8.4", "8.5", "8.6"]
 
     steps:
       - name: Checkout
@@ -120,7 +120,7 @@ jobs:
 
       - name: Create code suggestions from the coding style changes (on PR only)
         if: always() && github.event_name == 'pull_request'
-        uses: reviewdog/action-suggester@2558ba17e65a9039e73764a73009fc05fef28a46 # pin@v1.24.3
+        uses: reviewdog/action-suggester@fd22a83b1ebc13fd8aee5d57b06793fce6f20fb9 # pin@v1.27.1
         with:
           tool_name: PHP-CS-Fixer
           fail_on_error: "true"

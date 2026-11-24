@@ -64,6 +64,7 @@ This should print the Kirby CLI version and a list of available commands
 - kirby make:user
 - kirby migrate:to:public-folder
 - kirby migrate:to:root-folder
+- kirby migrate:to:symfony-yaml
 - kirby plugin:install
 - kirby plugin:remove
 - kirby plugin:upgrade
@@ -78,6 +79,12 @@ This should print the Kirby CLI version and a list of available commands
 - kirby uuid:populate
 - kirby uuid:remove
 - kirby version
+```
+
+To get a list of all available command names, one per line (e.g. to use them in scripts), use the `--raw` option:
+
+```bash
+kirby help --raw
 ```
 
 ## Writing commands

@@ -197,7 +197,10 @@ class CLI
 				continue;
 			}
 
-			$path = preg_replace('!^' . preg_quote($directory) . '\/!', '', $item->getPathname());
+			// relative path with forward slashes,
+			// also on Windows with its backslashes
+			$path = substr($item->getPathname(), strlen($directory) + 1);
+			$path = str_replace(DIRECTORY_SEPARATOR, '/', $path);
 			$path = preg_replace('!.php$!', '', $path);
 
 			if (str_contains($path, '_templates') === true) {
@@ -350,7 +353,9 @@ class CLI
 	 */
 	protected function handleException(Throwable $e): never
 	{
-		if ($this->isDefined('debug') === true) {
+		// outside the CLI, the caller has to handle the exception
+		// instead of ending the whole process (e.g. a web request)
+		if ($this->isCli() === false || $this->isDefined('debug') === true) {
 			throw $e;
 		}
 
@@ -371,6 +376,15 @@ class CLI
 		}
 
 		return getenv('HOME') . '/.kirby';
+	}
+
+	/**
+	 * Checks if the CLI runs on the command line
+	 * and not e.g. inside a web request
+	 */
+	protected function isCli(): bool
+	{
+		return in_array(PHP_SAPI, ['cli', 'phpdbg'], true) === true;
 	}
 
 	/**
@@ -617,8 +631,15 @@ class CLI
 			$this->handleException($e);
 		}
 
-		// enable quiet mode
-		if ($this->climate->arguments->get('quiet')) {
+		// enable quiet mode, always outside the CLI
+		// since there is no terminal to write to
+		if (
+			$this->isCli() === false ||
+			$this->climate->arguments->get('quiet')
+		) {
+			// colors don't matter without output and
+			// detecting their support needs STDOUT
+			$this->climate->forceAnsiOff();
 			$this->climate->output->add('quiet', new QuietWriter());
 			$this->climate->output->defaultTo('quiet');
 		}

@@ -27,8 +27,8 @@
 		"php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
 		"ext-zip": "*",
 		"composer-runtime-api": "^2.2",
-		"guzzlehttp/guzzle": "^8.3.1",
-		"league/climate": "^3.12.0"
+		"guzzlehttp/guzzle": "^8.6.0",
+		"league/climate": "^3.12.1"
 	},
 	"autoload": {
 		"psr-4": {

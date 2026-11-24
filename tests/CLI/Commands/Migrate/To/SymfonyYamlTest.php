@@ -292,7 +292,7 @@ class SymfonyYamlTest extends TestCase
 
 	public function testConvertContent(): void
 	{
-		$cli = $this->createCLIWithIssues();
+		$cli = $this->createCLIWithIssues(errors: false);
 		$this->setupOutputCapture();
 
 		$files = $this->call('checkContent', $cli, $cli->kirby());
